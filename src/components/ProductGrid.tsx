@@ -9,11 +9,11 @@ export default function ProductGrid() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBrand, setSelectedBrand] = useState<string>("All");
-  const [priceRange, setPriceRange] = useState(() => {
+  const [priceRange] = useState(() => {
     const prices = products.map((p) => p.price);
     return { min: 0, max: Math.max(...prices) };
   });
-  const [selectedStock, setSelectedStock] = useState<string[]>([]);
+  const [selectedStock] = useState<string[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<typeof products[0] | null>(null);
 
   useEffect(() => {
