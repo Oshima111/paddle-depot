@@ -13,21 +13,24 @@ export default function HeroSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center min-h-[65vh] sm:min-h-[70vh] text-center py-12">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white [text-shadow:_0_2px_4px_rgb(0_0_0_/_30%)] leading-tight">
-            EXPLORE OUR PADDLE COLLECTION
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tighter text-white [text-shadow:_0_2px_10px_rgb(0_0_0_/_30%)]">
+            Your Next Paddle Starts Here.
           </h1>
-          <p className="mt-4 text-lg sm:text-xl text-gray-200 max-w-2xl leading-relaxed [text-shadow:_0_1px_2px_rgb(0_0_0_/_40%)]">
-            Discover premium pickleball paddles from top brands.
+          <p className="mt-4 text-lg sm:text-xl text-gray-200 max-w-3xl leading-relaxed [text-shadow:_0_1px_4px_rgb(0_0_0_/_50%)]">
+            Explore premium pickleball paddles from leading brands, carefully curated for every style of play.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
             <a
               href="#products"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 font-semibold rounded-lg shadow-md hover:bg-gray-200 transition-all transform hover:shadow-lg hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg shadow-md hover:bg-gray-200 transition-all transform hover:shadow-lg hover:-translate-y-0.5"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
-              </svg>
-              Shop Now
+              EXPLORE PADDLES
+            </a>
+            <a
+              href="#brands"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3 bg-transparent text-white font-semibold rounded-lg border-2 border-white/80 hover:bg-white/10 transition-all"
+            >
+              SHOP BY BRAND
             </a>
           </div>
         </div>
@@ -36,7 +39,7 @@ export default function HeroSection() {
       {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 w-full leading-none">
         <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
-          <path d="M0 60V30C240 0 480 0 720 30C960 60 1200 60 1440 30V60H0Z" className="fill-gray-50" />
+          <path d="M0 60V30C240 0 480 0 720 30C960 60 1200 60 1440 30V60H0Z" className="fill-white" />
         </svg>
       </div>
     </section>

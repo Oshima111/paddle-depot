@@ -1,3 +1,5 @@
+import AnimatedSectionTitle from "./AnimatedSectionTitle";
+
 const benefits = [
   {
     name: "Wide Selection",
@@ -39,10 +41,10 @@ const benefits = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="bg-white py-16 sm:py-20">
+    <section className="bg-gray-50 py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Why Choose Paddle Depot?</h2>
+          <AnimatedSectionTitle>Why Choose Paddle Depot?</AnimatedSectionTitle>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
             We're more than just a store; we're your partners on the court.
           </p>

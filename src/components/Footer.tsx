@@ -46,7 +46,6 @@ export default function Footer({ setSelectedBrand }: FooterProps) {
           <div>
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-gray-400 hover:text-emerald-400 transition">Home</a></li>
               <li><a href="#products" className="text-sm text-gray-400 hover:text-emerald-400 transition">All Paddles</a></li>
               <li><a href="#brands" className="text-sm text-gray-400 hover:text-emerald-400 transition">Brands</a></li>
               <li><a href="#new-arrivals" className="text-sm text-gray-400 hover:text-emerald-400 transition">New Arrivals</a></li>

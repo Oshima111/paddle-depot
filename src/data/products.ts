@@ -13,11 +13,11 @@ export interface Product {
 export const products: Product[] = [
   // ---- RPM ----
   { id: 1, name: "RPM Q2", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/Q2.png", description: "A premium paddle designed for balanced power and control, suitable for competitive players.", featured: true },
-  { id: 2, name: "RPM Friction Pro V2 13K", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/RPMFPRO2.png", description: "Advanced 13K carbon fiber face for maximum friction and spin, with a responsive core.", featured: true },
-  { id: 3, name: "RPM Friction Pro", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/RPMFP.png", description: "High-friction carbon weave face with a 16mm core for maximum spin generation and control.", featured: false },
+  { id: 2, name: "RPM Friction Pro V2", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/RPMFPRO2.png", description: "A Gen. 2 paddle with an advanced carbon fiber face for maximum friction and spin, with a responsive core.", featured: true },
+  { id: 3, name: "RPM Friction Pro", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/RPMFP.png", description: "The Gen. 1 paddle featuring a high-friction carbon weave face with a 16mm core for maximum spin generation.", featured: false },
   
   // ---- CRBN ----
-  { id: 4, name: "CRBN TruFoam Barrage", brand: "CRBN", price: 12000, stockStatus: "In Stock", image: "/paddles/CRBNBARRAGE.png", description: "Hybrid design with AeroCurve for faster swings and TruFoam core for an expanded sweet spot.", featured: true },
+  { id: 4, name: "CRBN TruFoam Barrage", brand: "CRBN", price: 12000, stockStatus: "In Stock", image: "/paddles/CRBNBARRAGE.png", description: "A modern hybrid shape with AeroCurve for faster swings and a TruFoam core for an expanded sweet spot.", featured: true },
   
   // ---- JOOLA ----
   {
@@ -27,7 +27,7 @@ export const products: Product[] = [
     price: 13000,
     stockStatus: "In Stock",
     image: "/paddle-depot-logo.png",
-    description: "Co-designed with Ben Johns, this paddle offers a unique 3S shape for enhanced swing speed and power.",
+    description: "Co-designed with Ben Johns, this Gen. 3 paddle offers a unique shape for enhanced swing speed and power.",
     featured: true,
   },
   { id: 25, name: "JOOLA Hyperion 3S Dual", brand: "JOOLA", price: 12000, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "Features a dual-sided face with different textures, allowing players to switch between spin and control.", featured: false },
@@ -38,12 +38,12 @@ export const products: Product[] = [
     price: 17700,
     stockStatus: "In Stock",
     image: "/paddle-depot-logo.png",
-    description: "The next evolution of the Perseus line, with Pro-V technology for an optimized sweet spot and feel.",
+    description: "The next evolution of the Perseus line, this Gen. 5 paddle features Pro-V technology for an optimized sweet spot and feel.",
     featured: true,
   },
-  { id: 27, name: "JOOLA Kosmos Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "A wide-body paddle with Pro-V technology, offering a massive sweet spot and unmatched forgiveness.", featured: false },
-  { id: 28, name: "JOOLA Scorpeus Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "Designed for quick hands at the net, the Scorpeus Pro V provides exceptional maneuverability and response.", featured: false },
-  { id: 29, name: "JOOLA Hyperion Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "An all-court paddle featuring Pro-V Technology for a perfect blend of power, control, and spin.", featured: false },
+  { id: 27, name: "JOOLA Kosmos Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "A wide-body Gen. 5 paddle with Pro-V technology, offering a massive sweet spot and unmatched forgiveness.", featured: false },
+  { id: 28, name: "JOOLA Scorpeus Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "A Gen. 5 paddle designed for quick hands at the net, providing exceptional maneuverability and response.", featured: false },
+  { id: 29, name: "JOOLA Hyperion Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "An all-court Gen. 5 paddle featuring Pro-V Technology for a perfect blend of power, control, and spin.", featured: false },
   {
     id: 30,
     name: "JOOLA Andre Agassi Pro V",
@@ -51,7 +51,7 @@ export const products: Product[] = [
     price: 18500,
     stockStatus: "In Stock",
     image: "/paddle-depot-logo.png",
-    description: "The signature paddle of tennis legend Andre Agassi, designed for players who dictate the point.",
+    description: "The signature Gen. 5 paddle of tennis legend Andre Agassi, designed for players who dictate the point.",
     featured: true,
   },
 
@@ -78,7 +78,7 @@ export const products: Product[] = [
   
   // ---- Bread and Butter ----
   { id: 18, name: "Bread and Butter Loco", brand: "Bread and Butter", price: 13500, stockStatus: "In Stock", image: "/paddles/BNDLOCO.png", description: "The flagship paddle known for its unique design and all-around playability.", featured: true },
-  { id: 19, name: "Bread and Butter Loco Azul", brand: "Bread and Butter", price: 14500, stockStatus: "In Stock", image: "/paddles/LOCOAZUL.png", description: "An elongated and hybrid version of the Loco, providing extra reach and power in a stylish blue design.", featured: true },
+  { id: 19, name: "Bread and Butter Loco Azul", brand: "Bread and Butter", price: 14500, stockStatus: "In Stock", image: "/paddles/LOCOAZUL.png", description: "An elongated hybrid shape version of the Loco, providing extra reach and power in a stylish blue design.", featured: true },
   
   // ---- Sypik ----
   { id: 20, name: "Sypik Avatar Ultimate Pro QD", brand: "Sypik", price: 12500, stockStatus: "In Stock", image: "/paddles/AVATAR.png", description: "The ultimate pro version of the Avatar, co-designed with Quang Duong for peak performance.", featured: true },
@@ -88,5 +88,5 @@ export const products: Product[] = [
   { id: 22, name: "Luzz Inferno", brand: "Luzz", price: 13000, stockStatus: "In Stock", image: "/paddles/LUZZINFERNO.png", description: "A high-performance paddle designed for aggressive players who favor power and spin.", featured: true },
   
   // ---- Friday ----
-  { id: 23, name: "Friday Aura Pro (Elongated)", brand: "Friday", price: 10000, stockStatus: "In Stock", image: "/paddles/FRIDAY.png", description: "An elongated paddle with a gritty surface for enhanced spin and reach at the net.", featured: true },
+  { id: 23, name: "Friday Aura Pro (Elongated)", brand: "Friday", price: 10000, stockStatus: "In Stock", image: "/paddles/FRIDAY.png", description: "An elongated shape paddle with a gritty surface for enhanced spin and reach at the net.", featured: true },
 ];

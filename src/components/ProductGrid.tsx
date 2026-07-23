@@ -3,6 +3,7 @@ import { products } from "../data/products";
 import ProductCard from "./ProductCard";
 import QuickViewModal from "./QuickViewModal";
 import { brandsData } from "./brands";
+import AnimatedSectionTitle from "./AnimatedSectionTitle";
 
 const BRAND_ORDER = ["All", "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito", "Selkirk", "Bread and Butter", "Sypik", "Luzz", "Friday"];
 
@@ -20,6 +21,7 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
   });
   const [selectedStock] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("featured");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<typeof products[0] | null>(null);
 
   useEffect(() => {
@@ -29,6 +31,11 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
     }, 750);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileFiltersOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [mobileFiltersOpen]);
 
   const brands = useMemo(() => {
     const brandSet = new Set(products.map((p) => p.brand));
@@ -77,16 +84,16 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedBrand("All");
-    // You could also reset priceRange and selectedStock here if desired
+    setPriceRange({ min: 0, max: Math.max(...products.map(p => p.price)) });
   };
 
   return (
     <>
       {/* Featured Paddles Section */}
-      <section className="bg-gray-50 py-16 sm:py-20">
+      <section className="bg-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Featured Paddles</h2>
+            <AnimatedSectionTitle>Featured Paddles</AnimatedSectionTitle>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {featuredPaddles.map((product) => (
@@ -97,12 +104,12 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
       </section>
 
       {/* Shop by Brand Section */}
-      <section id="brands" className="bg-gray-50 py-16 sm:py-20">
+      <section id="brands" className="bg-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Shop by Brand</h2>
+            <AnimatedSectionTitle>Shop by Brand</AnimatedSectionTitle>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5">
             {brandsData.map((brand) => (
               <a key={brand.name} href="#products" onClick={() => setSelectedBrand(brand.name)} className="group block text-center">
                 <div className="h-[120px] sm:h-[140px] bg-white border border-gray-200/80 rounded-xl flex items-center justify-center p-4 overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:border-transparent group-hover:-translate-y-1">
@@ -130,7 +137,7 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
       <section id="new-arrivals" className="bg-gray-50 py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">New Arrivals</h2>
+            <AnimatedSectionTitle>New Arrivals</AnimatedSectionTitle>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
             {newArrivals.map((product) => (
@@ -144,42 +151,44 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
       <section id="products" className="bg-gray-50 py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">All Paddles</h2>
+            <AnimatedSectionTitle>All Paddles</AnimatedSectionTitle>
           </div>
 
           {/* Filters */}
-          <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
+          <div className="mb-8 hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center p-4 bg-white rounded-lg border border-gray-200/80">
             {/* Search */}
-            <div className="relative sm:col-span-2 md:col-span-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-          </div>
-          <input
-            type="text"
-              placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
-          />
-        </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+              </div>
+              <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition" />
+            </div>
             {/* Brand Filter */}
-            <select value={selectedBrand} onChange={e => setSelectedBrand(e.target.value)} className="w-full py-2.5 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <select value={selectedBrand} onChange={e => setSelectedBrand(e.target.value)} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
               {brands.map(b => <option key={b} value={b}>{b === 'All' ? 'All Brands' : b}</option>)}
             </select>
             {/* Price Filter (simplified for catalog) */}
-            <select onChange={e => setPriceRange({ min: Number(e.target.value.split('-')[0]), max: Number(e.target.value.split('-')[1]) || 99999 })} className="w-full py-2.5 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <select onChange={e => setPriceRange({ min: Number(e.target.value.split('-')[0]), max: Number(e.target.value.split('-')[1]) || 99999 })} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
               <option value="0-99999">All Prices</option>
               <option value="0-10000">Under ₱10,000</option>
               <option value="10000-15000">₱10,000 - ₱15,000</option>
               <option value="15000-99999">Over ₱15,000</option>
             </select>
             {/* Sort */}
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full py-2.5 border border-gray-300 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
               <option value="featured">Sort by: Featured</option>
               <option value="price-asc">Sort by: Price Low-High</option>
               <option value="price-desc">Sort by: Price High-Low</option>
               <option value="name-asc">Sort by: Name A-Z</option>
             </select>
+          </div>
+
+          {/* Mobile Filter Button */}
+          <div className="md:hidden mb-6">
+            <button onClick={() => setMobileFiltersOpen(true)} className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border border-gray-300 rounded-lg font-semibold text-gray-800">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" /></svg>
+              Filter & Sort
+            </button>
           </div>
 
         <main>
@@ -223,6 +232,48 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
             </div>
           )}
         </main>
+        </div>
+
+        {/* Mobile Filter Drawer */}
+        <div className={`fixed inset-0 z-[100] md:hidden transition-opacity ${mobileFiltersOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)}></div>
+          <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl p-6 transition-transform duration-300 ease-in-out ${mobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold">Filter & Sort</h3>
+              <button onClick={() => setMobileFiltersOpen(false)} className="p-2 -mr-2" aria-label="Close filters">
+                <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label className="text-sm font-semibold text-gray-600 mb-2 block">Sort by</label>
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+                  <option value="featured">Featured</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="name-asc">Name: A to Z</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-600 mb-2 block">Brand</label>
+                <select value={selectedBrand} onChange={e => setSelectedBrand(e.target.value)} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+                  {brands.map(b => <option key={b} value={b}>{b === 'All' ? 'All Brands' : b}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-600 mb-2 block">Price</label>
+                <select onChange={e => setPriceRange({ min: Number(e.target.value.split('-')[0]), max: Number(e.target.value.split('-')[1]) || 99999 })} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+                  <option value="0-99999">All Prices</option>
+                  <option value="0-10000">Under ₱10,000</option>
+                  <option value="10000-15000">₱10,000 - ₱15,000</option>
+                  <option value="15000-99999">Over ₱15,000</option>
+                </select>
+              </div>
+              <button onClick={() => setMobileFiltersOpen(false)} className="w-full py-3 mt-4 bg-emerald-600 text-white font-semibold rounded-lg">
+                Done
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     {quickViewProduct && (
