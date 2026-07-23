@@ -1,9 +1,3 @@
-const USD_TO_PHP = parseFloat(import.meta.env.VITE_USD_TO_PHP) || 58.0;
-
-function toPHP(usd: number): number {
-  return Math.round(usd * USD_TO_PHP);
-}
-
 export interface Product {
   id: number;
   name: string;
@@ -17,219 +11,82 @@ export interface Product {
 }
 
 export const products: Product[] = [
-  // ---- SELKIRK ----
-  {
-    id: 1,
-    name: "Selkirk Power Air Invikta",
-    brand: "Selkirk",
-    price: toPHP(249.99),
-    stockStatus: "In Stock",
-    image: "https://cdn.shopify.com/s/files/1/0532/3854/8876/files/power-air-invikta-red-front_800x.png?v=1690221363",
-    description: "Pro-level carbon fiber paddle with QuadFlex 4-layer face for explosive power and precision control.",
-    featured: true,
-  },
-  {
-    id: 3,
-    name: "Selkirk Luxx Control Air",
-    brand: "Selkirk",
-    price: toPHP(219.99),
-    stockStatus: "Low Stock",
-    image: "https://cdn.shopify.com/s/files/1/0532/3854/8876/files/luxx-control-air-invikta-blue-front_800x.png?v=1690221303",
-    description: "Elongated shape with vibration-dampening technology for ultimate control and feel at the net.",
-  },
-  {
-    id: 4,
-    name: "Selkirk LABS Boomstik Raw Carbon",
-    brand: "Selkirk",
-    price: toPHP(269.99),
-    stockStatus: "In Stock",
-    image: "https://cdn.shopify.com/s/files/1/0532/3854/8876/files/labs-project-006-pdp-1_800x.png?v=1699571348",
-    description: "Raw carbon fiber surface from the Selkirk LABS series, designed for maximum spin and a crisp feel at impact.",
-    featured: true,
-  },
-
+  // ---- RPM ----
+  { id: 1, name: "RPM Q2", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/Q2.png", description: "A premium paddle designed for balanced power and control, suitable for competitive players.", featured: true },
+  { id: 2, name: "RPM Friction Pro V2 13K", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/RPMFPRO2.png", description: "Advanced 13K carbon fiber face for maximum friction and spin, with a responsive core.", featured: true },
+  { id: 3, name: "RPM Friction Pro", brand: "RPM", price: 13000, stockStatus: "In Stock", image: "/paddles/RPMFP.png", description: "High-friction carbon weave face with a 16mm core for maximum spin generation and control.", featured: false },
+  
+  // ---- CRBN ----
+  { id: 4, name: "CRBN TruFoam Barrage", brand: "CRBN", price: 12000, stockStatus: "In Stock", image: "/paddles/CRBNBARRAGE.png", description: "Hybrid design with AeroCurve for faster swings and TruFoam core for an expanded sweet spot.", featured: true },
+  
   // ---- JOOLA ----
   {
-    id: 6,
-    name: "JOOLA Hyperion 2 CFS 16mm",
-    brand: "JOOLA",
-    price: toPHP(239.99),
-    stockStatus: "In Stock",
-    image: "https://joolausa.com/cdn/shop/files/JOOLA_Hyperion2_16mm_Front_1200x.png?v=1700773391",
-    description: "Carbon Faced Swing (CFS) technology with a 16mm core for exceptional spin and dwell time.",
-    featured: true,
-  },
-  {
-    id: 7,
-    name: "JOOLA Vision CGS 16mm",
-    brand: "JOOLA",
-    price: toPHP(129.99),
-    stockStatus: "In Stock",
-    image: "https://joolausa.com/cdn/shop/products/17523_JOOLA_Vision_CGS_16_Front_1200x.png?v=1661286224",
-    description: "Entry-level premium paddle with Carbon Grip Surface for great spin at an accessible price.",
-  },
-  {
-    id: 8,
-    name: "JOOLA Ben Johns Perseus Pro IV",
-    brand: "JOOLA",
-    price: toPHP(279.99),
-    stockStatus: "In Stock",
-    image: "https://joolausa.com/cdn/shop/files/PerseusPro4-1_1200x.png?v=1718826543",
-    description: "The latest Ben Johns signature paddle with an advanced carbon weave and optimized swing weight.",
-    featured: true,
-  },
-
-  // ---- HONOLULU ----
-  {
-    id: 9,
-    name: "Honolulu J2K Warrior",
-    brand: "Honolulu",
-    price: toPHP(199.99),
-    stockStatus: "In Stock",
-    image: "https://honolulupickleballcompany.com/cdn/shop/files/J2K-Warrior-Angle-Left.jpg?v=1715031980&width=800",
-    description: "Kevlar-infused paddle face with a responsive polymer core for tournament-level performance.",
-    featured: true,
-  },
-  {
-    id: 12,
-    name: "Honolulu J2NFK",
-    brand: "Honolulu",
-    price: toPHP(219.99),
-    stockStatus: "In Stock",
-    image: "https://honolulupickleballcompany.com/cdn/shop/files/J2NFK-Angle-Left.jpg?v=1715032008&width=800",
-    description: "Next-gen Kevlar composite paddle with enhanced sweet spot and premium edge protection.",
-  },
-  {
-    id: 13,
-    name: "Honolulu J6CR",
-    brand: "Honolulu",
-    price: toPHP(189.99),
-    stockStatus: "In Stock",
-    image: "https://honolulupickleballcompany.com/cdn/shop/files/J6CR-Angle-Left.jpg?v=1715032036&width=800",
-    description: "Carbon resin infused paddle built for aggressive players who demand power and precision.",
-  },
-
-  // ---- WIKA ----
-  {
-    id: 14,
-    name: "WIKA Pro X1",
-    brand: "WIKA",
-    price: toPHP(189.99),
-    stockStatus: "In Stock",
-    image: "https://wikapickleball.com/cdn/shop/files/ProX1-Angle-Left.jpg?v=1710365773&width=800",
-    description: "3K woven carbon fiber face with a torque-resistant core for maximum power transfer.",
-    featured: true,
-  },
-  {
-    id: 17,
-    name: "WIKA Quang Duong Air 16mm",
-    brand: "WIKA",
-    price: toPHP(209.99),
-    stockStatus: "In Stock",
-    image: "https://wikapickleball.com/cdn/shop/files/Quang-Duong-Air-16mm-Angle-Left.jpg?v=1710365798&width=800",
-    description: "Signature paddle co-designed with Quang Duong featuring an air-channel core for reduced weight.",
-    featured: true,
-  },
-  {
-    id: 18,
-    name: "WIKA BaoFire 2",
-    brand: "WIKA",
-    price: toPHP(229.99),
-    stockStatus: "In Stock",
-    image: "https://wikapickleball.com/cdn/shop/files/BaoFire2-Angle-Left.jpg?v=1710365747&width=800",
-    description: "Second-gen BaoFire with thermoformed carbon face and enhanced edge foam technology.",
-  },
-
-  // ---- SYPIK ----
-  {
-    id: 19,
-    name: "Sypik Stealth Pro",
-    brand: "Sypik",
-    price: toPHP(209.99),
-    stockStatus: "In Stock",
-    image: "https://sypik.com/cdn/shop/files/1_e633e76f-367f-442d-9477-0c7d41334c4f_1024x1024.jpg?v=1706163354",
-    description: "Stealth carbon weave surface with an unidirectional carbon layup for pinpoint accuracy.",
-    featured: true,
-  },
-  {
-    id: 21,
-    name: "Sypik Apex Force",
-    brand: "Sypik",
-    price: toPHP(229.99),
-    stockStatus: "Out of Stock",
-    image: "https://sypik.com/cdn/shop/files/1_b694852c-3549-4458-9418-f0270058e50a_1024x1024.jpg?v=1706163255",
-    description: "Thermoformed carbon paddle with an elongated handle for maximum lever advantage.",
-  },
-  {
-    id: 23,
-    name: "Sypik Avatar",
-    brand: "Sypik",
-    price: toPHP(199.99),
-    stockStatus: "In Stock",
-    image: "https://sypik.com/cdn/shop/files/1_38171a3d-c121-4340-a359-335349457635_1024x1024.jpg?v=1706163456",
-    description: "Next-gen paddle featuring a unique honeycomb core shape for improved ball response.",
-    featured: true,
-  },
-
-  // ---- FRIDAY ----
-  {
     id: 24,
-    name: "Friday Pro-Spin Paddle",
-    brand: "Friday",
-    price: toPHP(139.99),
+    name: "JOOLA Ben Johns Hyperion 3S 16mm",
+    brand: "JOOLA",
+    price: 13000,
     stockStatus: "In Stock",
-    image: "https://fridaypickle.com/cdn/shop/files/Untitled-1-Recovered-Recovered-Recovered_12.png?v=1715978438&width=800",
-    description: "Gritty textured surface engineered for heavy spin with a comfortable cushioned grip.",
+    image: "/paddle-depot-logo.png",
+    description: "Co-designed with Ben Johns, this paddle offers a unique 3S shape for enhanced swing speed and power.",
     featured: true,
   },
+  { id: 25, name: "JOOLA Hyperion 3S Dual", brand: "JOOLA", price: 12000, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "Features a dual-sided face with different textures, allowing players to switch between spin and control.", featured: false },
   {
-    id: 25,
-    name: "Friday Edge Control",
-    brand: "Friday",
-    price: toPHP(119.99),
+    id: 26,
+    name: "JOOLA Perseus Pro V",
+    brand: "JOOLA",
+    price: 17700,
     stockStatus: "In Stock",
-    image: "https://fridaypickle.com/cdn/shop/files/GameChanger-RedandBlack.png?v=1715978396&width=800",
-    description: "Control-oriented paddle with a wider face and enhanced edge protection for lasting durability.",
-  },
-  {
-    id: 27,
-    name: "Friday Originals Ghostly Haze",
-    brand: "Friday",
-    price: toPHP(159.99),
-    stockStatus: "In Stock",
-    image: "https://fridaypickle.com/cdn/shop/files/Originals-GhostlyHaze.png?v=1715978420&width=800",
-    description: "Limited edition Friday Originals series with a unique matte finish and ghost-like haze aesthetic.",
+    image: "/paddle-depot-logo.png",
+    description: "The next evolution of the Perseus line, with Pro-V technology for an optimized sweet spot and feel.",
     featured: true,
   },
-
-  // ---- RPM ----
-  {
-    id: 28,
-    name: "RPM Ignite Pro",
-    brand: "RPM",
-    price: toPHP(169.99),
-    stockStatus: "In Stock",
-    image: "https://rpmpickleball.com/cdn/shop/files/IgnitePro-Angle-Left.jpg?v=1710280486&width=800",
-    description: "Raw carbon fiber surface with a precision-molded polymer core for explosive power.",
-    featured: true,
-  },
+  { id: 27, name: "JOOLA Kosmos Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "A wide-body paddle with Pro-V technology, offering a massive sweet spot and unmatched forgiveness.", featured: false },
+  { id: 28, name: "JOOLA Scorpeus Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "Designed for quick hands at the net, the Scorpeus Pro V provides exceptional maneuverability and response.", featured: false },
+  { id: 29, name: "JOOLA Hyperion Pro V", brand: "JOOLA", price: 17700, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "An all-court paddle featuring Pro-V Technology for a perfect blend of power, control, and spin.", featured: false },
   {
     id: 30,
-    name: "RPM Fusion X",
-    brand: "RPM",
-    price: toPHP(199.99),
-    stockStatus: "Low Stock",
-    image: "https://rpmpickleball.com/cdn/shop/files/FusionX-Angle-Left.jpg?v=1710280459&width=800",
-    description: "Fusion weave technology combining Kevlar and carbon fiber for unmatched durability and feel.",
-  },
-  {
-    id: 31,
-    name: "RPM Friction Pro 16mm",
-    brand: "RPM",
-    price: toPHP(179.99),
+    name: "JOOLA Andre Agassi Pro V",
+    brand: "JOOLA",
+    price: 18500,
     stockStatus: "In Stock",
-    image: "https://rpmpickleball.com/cdn/shop/files/FrictionPro16mm-Angle-Left.jpg?v=1710280430&width=800",
-    description: "High-friction carbon weave face with a 16mm core for maximum spin generation and control.",
+    image: "/paddle-depot-logo.png",
+    description: "The signature paddle of tennis legend Andre Agassi, designed for players who dictate the point.",
     featured: true,
   },
+
+  // ---- Honolulu ----
+  { id: 5, name: "Honolulu J6CR", brand: "Honolulu", price: 13000, stockStatus: "In Stock", image: "/paddles/J6CR.png", description: "Carbon resin infused paddle built for aggressive players who demand power and precision.", featured: false },
+  { id: 6, name: "Honolulu J2CR Crystal Blue", brand: "Honolulu", price: 14000, stockStatus: "In Stock", image: "/paddles/J2CR.png", description: "Features a Crystal Blue Endurance Surface for enhanced durability and consistent spin.", featured: true },
+  { id: 7, name: "Honolulu J6CR Crystal Blue", brand: "Honolulu", price: 14000, stockStatus: "In Stock", image: "/paddle-depot-logo.png", description: "Combines the J6CR's power with the Crystal Blue Endurance Surface for maximum performance.", featured: true },
+  
+  // ---- Franklin ----
+  { id: 8, name: "Franklin C45 (Anna Leigh Waters)", brand: "Franklin", price: 14000, stockStatus: "In Stock", image: "/paddles/C45ANNA.png", description: "Anna Leigh Waters' signature paddle, engineered with a C45 carbon fiber face for elite power and touch.", featured: true },
+  
+  // ---- Kamito ----
+  { id: 9, name: "Kamito Alpha X (Her Power)", brand: "Kamito", price: 10000, stockStatus: "In Stock", image: "/paddles/HERPOWER.png", description: "A special edition paddle celebrating female players, offering a blend of control and pop.", featured: true },
+  { id: 10, name: "Kamito Alpha X", brand: "Kamito", price: 10000, stockStatus: "In Stock", image: "/paddles/ALPHA.png", description: "The standard Alpha X, designed for all-court players seeking a reliable and responsive paddle.", featured: false },
+  { id: 11, name: "Kamito Genesis", brand: "Kamito", price: 10000, stockStatus: "In Stock", image: "/paddles/GENESIS.png", description: "A great entry-point into the Kamito line, offering a forgiving face and comfortable grip.", featured: false },
+  
+  // ---- Selkirk ----
+  { id: 12, name: "Selkirk Boomstik 1766 Capsule", brand: "Selkirk", price: 20000, stockStatus: "In Stock", image: "/paddles/SK1766.png", description: "A limited edition capsule release of the high-performance Boomstik paddle.", featured: true },
+  { id: 13, name: "Selkirk Labs Project Boomstik", brand: "Selkirk", price: 17000, stockStatus: "In Stock", image: "/paddles/SKBS.png", description: "Raw carbon fiber surface from the Selkirk LABS series, designed for maximum spin and a crisp feel.", featured: false },
+  { id: 14, name: "Selkirk Boomstik Jack Sock", brand: "Selkirk", price: 18000, stockStatus: "In Stock", image: "/paddles/SKJS.png", description: "The signature paddle of tennis pro Jack Sock, optimized for power and aggressive play.", featured: true },
+  { id: 15, name: "Selkirk Labs Project Boomstik ASIA", brand: "Selkirk", price: 14000, stockStatus: "In Stock", image: "/paddles/SKASIAN.png", description: "A special edition of the Boomstik designed for the Asian market with unique aesthetics.", featured: false },
+  { id: 16, name: "Selkirk SLK Dauntless", brand: "Selkirk", price: 9000, stockStatus: "In Stock", image: "/paddles/DAUNTLESS.png", description: "A reliable paddle from the SLK line, offering a large sweet spot and consistent performance.", featured: false },
+  { id: 17, name: "Selkirk SLK Era Power", brand: "Selkirk", price: 9000, stockStatus: "In Stock", image: "/paddles/ERA.png", description: "Engineered for power players, this SLK paddle features a harder face for increased pop.", featured: false },
+  
+  // ---- Bread and Butter ----
+  { id: 18, name: "Bread and Butter Loco", brand: "Bread and Butter", price: 13500, stockStatus: "In Stock", image: "/paddles/BNDLOCO.png", description: "The flagship paddle known for its unique design and all-around playability.", featured: true },
+  { id: 19, name: "Bread and Butter Loco Azul", brand: "Bread and Butter", price: 14500, stockStatus: "In Stock", image: "/paddles/LOCOAZUL.png", description: "An elongated and hybrid version of the Loco, providing extra reach and power in a stylish blue design.", featured: true },
+  
+  // ---- Sypik ----
+  { id: 20, name: "Sypik Avatar Ultimate Pro QD", brand: "Sypik", price: 12500, stockStatus: "In Stock", image: "/paddles/AVATAR.png", description: "The ultimate pro version of the Avatar, co-designed with Quang Duong for peak performance.", featured: true },
+  { id: 21, name: "Sypik Triton 5 Ultimate Pro", brand: "Sypik", price: 10000, stockStatus: "In Stock", image: "/paddles/TRITON5.png", description: "A versatile all-court paddle with a hybrid carbon/fiberglass face for balanced performance.", featured: false },
+  
+  // ---- Luzz ----
+  { id: 22, name: "Luzz Inferno", brand: "Luzz", price: 13000, stockStatus: "In Stock", image: "/paddles/LUZZINFERNO.png", description: "A high-performance paddle designed for aggressive players who favor power and spin.", featured: true },
+  
+  // ---- Friday ----
+  { id: 23, name: "Friday Aura Pro (Elongated)", brand: "Friday", price: 10000, stockStatus: "In Stock", image: "/paddles/FRIDAY.png", description: "An elongated paddle with a gritty surface for enhanced spin and reach at the net.", featured: true },
 ];
