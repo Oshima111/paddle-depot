@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 import { products as localProducts } from "./data/products";
 import { getProductImageUrl, handleImageError } from "./lib/image";
+import { runDiagnostic } from "./lib/diagnostic";
 import {
   LayersIcon, CheckCircleIcon, AlertTriangleIcon, XCircleIcon, StarIcon,
   PlusIcon, PackageIcon, ExternalLinkIcon, ChevronRightIcon,
@@ -195,6 +196,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState<string | null>(null);
+
+useEffect(() => {
+    // Run production diagnostic on mount
+    runDiagnostic().catch(console.warn);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
