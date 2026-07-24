@@ -216,12 +216,21 @@ export default function ProductEditPage() {
         return;
       }
 
-      if (isEditMode) {
+if (isEditMode) {
         const { error } = await supabase
           .from("products")
           .update(productData)
           .eq("id", id);
-        if (error) throw new Error("Database update failed: " + error.message);
+        if (error) {
+          console.error("[ProductEditPage] Supabase update error:", error);
+          if (error.message?.includes("permission denied") || error.code === "42501") {
+            throw new Error(
+              "Permission denied. Your admin account may not have the correct database permissions. " +
+              "Make sure your email is in the admin_allowlist table in Supabase, or run the migration '00002_admin_allowlist.sql'."
+            );
+          }
+          throw new Error("Database update failed: " + error.message);
+        }
 
         // Build activity description
         const original = originalProductRef.current;
@@ -246,7 +255,7 @@ export default function ProductEditPage() {
           product_name: formData.name,
           metadata: { changes },
         });
-      } else {
+} else {
         const { data: inserted, error } = await supabase
           .from("products")
           .insert({
@@ -255,7 +264,16 @@ export default function ProductEditPage() {
           })
           .select()
           .single();
-        if (error) throw new Error("Database insert failed: " + error.message);
+        if (error) {
+          console.error("[ProductEditPage] Supabase insert error:", error);
+          if (error.message?.includes("permission denied") || error.code === "42501") {
+            throw new Error(
+              "Permission denied. Your admin account may not have the correct database permissions. " +
+              "Make sure your email is in the admin_allowlist table in Supabase, or run the migration '00002_admin_allowlist.sql'."
+            );
+          }
+          throw new Error("Database insert failed: " + error.message);
+        }
 
         const newId = (inserted as any)?.id;
         await logAdminActivity({
