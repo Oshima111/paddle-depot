@@ -32,8 +32,13 @@ export default function LoginPage() {
   const onSubmit = async (data: any) => {
     setAuthError(null);
 
+    // === Production Diagnostic Logs ===
+    console.log("[Auth] Supabase configured:", isSupabaseConfigured);
+    console.log("[Auth] Login attempt email:", data.email);
+
     // Demo mode: allow access without Supabase
     if (!isSupabaseConfigured) {
+      console.warn("[Auth] Supabase not configured — falling back to demo mode.");
       if (data.email === 'admin@demo.com' && data.password === 'admin') {
         localStorage.setItem('demo_admin_session', 'true');
         navigate('/admin');
@@ -52,15 +57,28 @@ export default function LoginPage() {
     });
 
     if (error) {
+      console.error("[Auth] Supabase login error:", error.message);
       setAuthError(error.message);
       setIsLoading(false);
       return;
+    }
+
+    console.log("[Auth] Sign-in response received, fetching user...");
+
+    // Get the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log("[Auth] Authenticated user:", user?.email);
+    console.log("[Auth] Authenticated user ID:", user?.id);
+
+    if (user) {
+      console.log("[Auth] User email confirmed:", !!(user.email_confirmed_at || user.confirmed_at));
     }
 
     // Verify the user is in the admin allowlist
     const isAdmin = await checkAdminStatus(data.email);
 
     if (!isAdmin) {
+      console.warn("[Auth] User NOT in admin_allowlist, signing out:", data.email);
       // Sign out immediately since this user is not an admin
       await supabase.auth.signOut();
       setAuthError(
@@ -72,6 +90,7 @@ export default function LoginPage() {
       return;
     }
 
+    console.log("[Auth] Admin access granted for:", data.email);
     navigate('/admin');
   };
 
