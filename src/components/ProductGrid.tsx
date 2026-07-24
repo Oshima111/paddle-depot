@@ -1,9 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
-import { products } from "../data/products";
 import ProductCard from "./ProductCard";
 import QuickViewModal from "./QuickViewModal";
 import { brandsData } from "./brands";
 import AnimatedSectionTitle from "./AnimatedSectionTitle";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import type { Product } from "../data/products";
+import { products as localProducts } from "../data/products";
 
 const BRAND_ORDER = ["All", "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito", "Selkirk", "Bread and Butter", "Sypik", "Luzz", "Friday"];
 
@@ -14,22 +16,39 @@ interface ProductGridProps {
 
 export default function ProductGrid({ selectedBrand, setSelectedBrand }: ProductGridProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [priceRange, setPriceRange] = useState(() => {
-    const prices = products.map((p) => p.price);
-    return { min: 0, max: Math.max(...prices) };
-  });
+const [priceRange, setPriceRange] = useState({ min: 0, max: 99999 });
   const [selectedStock] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("featured");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<typeof products[0] | null>(null);
 
   useEffect(() => {
-    // Simulate network request
-    const timer = setTimeout(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+
+      if (!isSupabaseConfigured) {
+        setProducts(localProducts);
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        // If Supabase is unavailable or has no data, use the local product data
+        if (error) console.error('Supabase error, falling back to local data:', error);
+        setProducts(localProducts);
+      } else {
+        setProducts(data as Product[]);
+      }
       setIsLoading(false);
-    }, 750);
-    return () => clearTimeout(timer);
+    };
+    fetchProducts();
   }, []);
 
   useEffect(() => {
@@ -40,10 +59,12 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
   const brands = useMemo(() => {
     const brandSet = new Set(products.map((p) => p.brand));
     return BRAND_ORDER.filter((b) => b === "All" || brandSet.has(b));
-  }, []);
+  }, [products]);
 
   const sortedProducts = useMemo(() => {
     let filteredProducts = products.filter((p) => {
+      const stockStatus = p.stockStatus || p.stock_status || "In Stock";
+
       // Search Query Filter
       const matchesSearch =
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,7 +81,7 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
 
       // Stock Status Filter
       const matchesStock =
-        selectedStock.length === 0 || selectedStock.includes(p.stockStatus);
+        selectedStock.length === 0 || selectedStock.includes(stockStatus);
 
       return matchesSearch && matchesBrand && matchesPrice && matchesStock;
     });
@@ -76,15 +97,15 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
       default:
         return [...filteredProducts].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
-  }, [searchQuery, selectedBrand, priceRange, selectedStock, sortBy]);
+  }, [searchQuery, selectedBrand, priceRange, selectedStock, sortBy, products]);
 
-  const featuredPaddles = useMemo(() => products.filter(p => p.featured).slice(0, 4), []);
-  const newArrivals = useMemo(() => products.slice(0, 8), []); // Assuming newest are at the top
+  const featuredPaddles = useMemo(() => products.filter(p => p.featured).slice(0, 4), [products]);
+  const newArrivals = useMemo(() => products.slice(0, 8), [products]); // Assuming newest are at the top
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedBrand("All");
-    setPriceRange({ min: 0, max: Math.max(...products.map(p => p.price)) });
+    setPriceRange({ min: 0, max: 99999 });
   };
 
   return (
@@ -168,7 +189,7 @@ export default function ProductGrid({ selectedBrand, setSelectedBrand }: Product
               {brands.map(b => <option key={b} value={b}>{b === 'All' ? 'All Brands' : b}</option>)}
             </select>
             {/* Price Filter (simplified for catalog) */}
-            <select onChange={e => setPriceRange({ min: Number(e.target.value.split('-')[0]), max: Number(e.target.value.split('-')[1]) || 99999 })} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <select value={`${priceRange.min}-${priceRange.max}`} onChange={e => setPriceRange({ min: Number(e.target.value.split('-')[0]), max: Number(e.target.value.split('-')[1]) || 99999 })} className="w-full py-2.5 border border-gray-300 bg-gray-50 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
               <option value="0-99999">All Prices</option>
               <option value="0-10000">Under ₱10,000</option>
               <option value="10000-15000">₱10,000 - ₱15,000</option>

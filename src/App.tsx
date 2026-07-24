@@ -1,25 +1,32 @@
-import { useState } from "react";
-import Navbar from "./components/Navbar";
-import HeroSection from "./components/HeroSection";
-import ProductGrid from "./components/ProductGrid";
-import Footer from "./components/Footer";
-import ContactUs from "./components/ContactUs";
-import WhyChooseUs from "./components/WhyChooseUs";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './HomePage';
+import AdminLayout from './AdminLayout';
+import DashboardPage from './DashboardPage';
+import ProductListPage from './ProductListPage';
+import ProductEditPage from './ProductEditPage';
+import LoginPage from './LoginPage';
+import ProtectedRoute from './ProtectedRoute';
 
 function App() {
-  const [selectedBrand, setSelectedBrand] = useState<string>("All");
-
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
-      <main className="flex-grow">
-        <HeroSection />
-        <ProductGrid selectedBrand={selectedBrand} setSelectedBrand={setSelectedBrand} />
-        <WhyChooseUs />
-        <ContactUs />
-      </main>
-      <Footer setSelectedBrand={setSelectedBrand} />
-    </div>
+    <Router>
+      <Routes>
+        {/* Customer Facing Website */}
+        <Route path="/" element={<HomePage />} />
+
+        {/* Admin Section */}
+        <Route path="/admin/login" element={<LoginPage />} />
+        <Route
+          path="/admin"
+          element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}
+        >
+          <Route index element={<DashboardPage />} />
+          <Route path="products" element={<ProductListPage />} />
+          <Route path="products/add" element={<ProductEditPage />} />
+          <Route path="products/edit/:id" element={<ProductEditPage />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { Product } from "../data/products";
+import { getProductImageUrl, handleImageError } from "../lib/image";
 
 const PESO_SIGN = "\u20B1";
 
@@ -17,7 +18,7 @@ export default function CompareModal({ products, onRemove, onClose }: CompareMod
   const specs = [
     { label: 'Brand', getValue: (p: Product) => p.brand },
     { label: 'Price', getValue: (p: Product) => `${PESO_SIGN}${p.price.toLocaleString()}` },
-    { label: 'Stock', getValue: (p: Product) => p.stockStatus },
+    { label: 'Stock', getValue: (p: Product) => p.stockStatus || p.stock_status || 'In Stock' },
     { label: 'Shape', getValue: (p: Product) => getSpec(p.description, 'hybrid|elongated|wide-body') },
     { label: 'Generation', getValue: (p: Product) => getSpec(p.description, 'Gen\\. \\d') },
   ];
@@ -41,12 +42,11 @@ export default function CompareModal({ products, onRemove, onClose }: CompareMod
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                   </button>
                   <div className="h-40 flex items-center justify-center">
-                    <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" />
+                    <img src={getProductImageUrl(product.image)} alt={product.name} className="max-h-full max-w-full object-contain" onError={handleImageError} />
                   </div>
                   <h3 className="mt-4 font-bold text-gray-800 h-12 line-clamp-2">{product.name}</h3>
                 </div>
               ))}
-              {/* Placeholders for empty slots */}
               {Array.from({ length: 3 - products.length }).map((_, i) => (
                 <div key={`placeholder-${i}`} className="p-4 text-center flex items-center justify-center h-full">
                   <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
@@ -65,7 +65,6 @@ export default function CompareModal({ products, onRemove, onClose }: CompareMod
                       <p className="font-semibold text-gray-800">{spec.getValue(product)}</p>
                     </div>
                   ))}
-                  {/* Placeholders */}
                   {Array.from({ length: 3 - products.length }).map((_, i) => (
                     <div key={`placeholder-spec-${i}`} className="p-4 text-center">
                       <p className="text-xs text-gray-500 mb-1">{spec.label}</p>
@@ -105,3 +104,4 @@ export default function CompareModal({ products, onRemove, onClose }: CompareMod
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 import type { Product } from "../data/products";
+import { getProductImageUrl, handleImageError } from "../lib/image";
 
 const PESO_SIGN = "\u20B1";
 
@@ -14,6 +15,7 @@ const stockColors = {
 };
 
 export default function QuickViewModal({ product, onClose }: QuickViewModalProps) {
+  const stockStatus = product.stockStatus || product.stock_status || "In Stock";
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden animate-slide-up" onClick={(e) => e.stopPropagation()}>
@@ -22,7 +24,12 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
         </button>
 
         <div className="md:w-1/2 bg-white flex items-center justify-center p-4 relative">
-          <img src={product.image} alt={product.name} className="max-h-[40vh] md:max-h-[70vh] w-auto object-contain" />
+          <img
+            src={getProductImageUrl(product.image)}
+            alt={product.name}
+            className="max-h-[40vh] md:max-h-[70vh] w-auto object-contain"
+            onError={handleImageError}
+          />
         </div>
 
         <div className="md:w-1/2 p-6 sm:p-8 flex flex-col overflow-y-auto">
@@ -37,8 +44,8 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
           </div>
 
           <div className="mt-4">
-            <span className={`text-sm font-medium px-3 py-1 rounded-full ${stockColors[product.stockStatus]}`}>
-              {product.stockStatus}
+            <span className={`text-sm font-medium px-3 py-1 rounded-full ${stockColors[stockStatus] || "bg-gray-100 text-gray-800"}`}>
+              {stockStatus}
             </span>
           </div>
 
@@ -72,3 +79,4 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 import type { Product } from "../data/products";
+import { getProductImageUrl, handleImageError } from "../lib/image";
 
 interface ProductCardProps {
   product: Product;
@@ -8,7 +9,8 @@ interface ProductCardProps {
 const PESO_SIGN = "\u20B1";
 
 export default function ProductCard({ product, onQuickView }: ProductCardProps) {
-  const stockColors = {
+  const stockStatus = product.stockStatus || product.stock_status || "In Stock";
+  const stockColors: Record<string, string> = {
     "In Stock": "bg-emerald-100 text-emerald-800",
     "Low Stock": "bg-amber-100 text-amber-800",
     "Out of Stock": "bg-red-100 text-red-800",
@@ -19,21 +21,18 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
       {/* Image */}
       <div className="relative aspect-square bg-white overflow-hidden">
         <img
-          src={product.image}
+          src={getProductImageUrl(product.image)}
           alt={product.name}
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-2"
           loading="lazy"
-          onError={(e) => {
-            // Simple fallback to prevent broken image icons
-            e.currentTarget.src = "/paddle-depot-logo.png"; // Fallback to your main logo
-          }}
+          onError={handleImageError}
         />
         {product.featured && (
           <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full tracking-wider">
             FEATURED
           </span>
         )}
-        {product.id <= 8 && !product.featured && ( // Use product ID for more reliable "NEW" logic
+        {product.is_new && (
           <span className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full tracking-wider">
             NEW
           </span>
@@ -53,8 +52,8 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
           <span className="text-lg font-semibold text-gray-900">
             {PESO_SIGN}{(product.price).toLocaleString()}
           </span>
-          <span className={"text-xs font-semibold px-2.5 py-1 rounded-full " + stockColors[product.stockStatus]}>
-            {product.stockStatus}
+          <span className={"text-xs font-semibold px-2.5 py-1 rounded-full " + (stockColors[stockStatus] || "bg-gray-100 text-gray-800")}>
+            {stockStatus}
           </span>
         </div>
         <button onClick={() => onQuickView(product)} className="mt-4 w-full px-4 py-2 bg-gray-100 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-800 hover:text-white transition-colors duration-300">
@@ -64,3 +63,4 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
     </div>
   );
 }
+
