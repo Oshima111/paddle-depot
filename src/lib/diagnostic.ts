@@ -138,7 +138,7 @@ export async function runDiagnostic(): Promise<DiagnosticResult> {
 
   // Step 4: Check products table accessibility
   try {
-    const { data: productsCheck, error: productsError, count } = await supabase
+    const { error: productsError, count } = await supabase
       .from("products")
       .select("*", { count: "exact", head: true });
 
