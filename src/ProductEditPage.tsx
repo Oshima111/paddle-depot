@@ -217,12 +217,25 @@ export default function ProductEditPage() {
       }
 
 if (isEditMode) {
+        // PRODUCTION DIAGNOSTIC: Log session info before making Supabase call
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        console.group("[PROD DIAGNOSTIC] Update Product");
+        console.log("Supabase configured:", isSupabaseConfigured);
+        if (sessionError) console.error("Session fetch error:", sessionError);
+        console.log("Session exists:", !!sessionData?.session);
+        console.log("Current user:", sessionData?.session?.user?.email);
+        console.log("User ID:", sessionData?.session?.user?.id);
+        console.log("Product ID being updated:", id);
+        console.log("Update data:", JSON.stringify(productData, null, 2));
+        console.groupEnd();
+
         const { error } = await supabase
           .from("products")
           .update(productData)
           .eq("id", id);
         if (error) {
           console.error("[ProductEditPage] Supabase update error:", error);
+          console.error("[PROD DIAGNOSTIC] Full error object:", JSON.stringify(error, null, 2));
           if (error.message?.includes("permission denied") || error.code === "42501") {
             throw new Error(
               "Permission denied. Your admin account may not have the correct database permissions. " +
@@ -256,6 +269,17 @@ if (isEditMode) {
           metadata: { changes },
         });
 } else {
+        // PRODUCTION DIAGNOSTIC: Log session info before making Supabase call
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        console.group("[PROD DIAGNOSTIC] Create Product");
+        console.log("Supabase configured:", isSupabaseConfigured);
+        if (sessionError) console.error("Session fetch error:", sessionError);
+        console.log("Session exists:", !!sessionData?.session);
+        console.log("Current user:", sessionData?.session?.user?.email);
+        console.log("User ID:", sessionData?.session?.user?.id);
+        console.log("Insert data:", JSON.stringify(productData, null, 2));
+        console.groupEnd();
+
         const { data: inserted, error } = await supabase
           .from("products")
           .insert({
@@ -266,6 +290,7 @@ if (isEditMode) {
           .single();
         if (error) {
           console.error("[ProductEditPage] Supabase insert error:", error);
+          console.error("[PROD DIAGNOSTIC] Full error object:", JSON.stringify(error, null, 2));
           if (error.message?.includes("permission denied") || error.code === "42501") {
             throw new Error(
               "Permission denied. Your admin account may not have the correct database permissions. " +
