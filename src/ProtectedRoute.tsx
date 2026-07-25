@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabase } from './lib/supabase';
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<any>(null);
@@ -10,18 +10,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAccess = async () => {
-      // Demo mode: check localStorage
-      if (!isSupabaseConfigured) {
-        const demoSession = localStorage.getItem('demo_admin_session');
-        if (demoSession === 'true') {
-          setSession({ user: { email: 'admin@demo.com' } });
-          setIsAdmin(true);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Real Supabase mode
+      // Get session from Supabase Auth
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
@@ -77,7 +66,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
           </svg>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
           <p className="text-gray-500 mb-2">
-            Your account <strong>{session.user?.email}</strong> is not authorized to access the admin panel.
+            Your account <strong>{session.user?.email}</strong> is not authorized to access the Admin Dashboard.
           </p>
           <p className="text-gray-400 text-sm mb-6">
             Only designated admin accounts can manage products.

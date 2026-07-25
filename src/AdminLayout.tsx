@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabase } from './lib/supabase';
 import { DashboardIcon, PackageIcon, PlusIcon, LogOutIcon, MenuIcon, ChevronDownIcon, UserIcon } from './lib/icons';
 
 const navItems = [
@@ -40,11 +40,6 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const getEmail = async () => {
-      if (!isSupabaseConfigured) {
-        setAdminEmail('admin@demo.com');
-        setAdminInitial('A');
-        return;
-      }
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) {
         setAdminEmail(user.email);
@@ -55,11 +50,7 @@ export default function AdminLayout() {
   }, []);
 
   const handleLogout = async () => {
-    if (!isSupabaseConfigured) {
-      localStorage.removeItem('demo_admin_session');
-    } else {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
     navigate('/admin/login');
   };
 

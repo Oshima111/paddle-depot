@@ -8,7 +8,14 @@
  * Safe: No Supabase keys or secrets are logged.
  */
 
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabase } from "./supabase";
+
+// Check if Supabase is configured from env vars
+const isSupabaseConfigured = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && 
+  import.meta.env.VITE_SUPABASE_ANON_KEY && 
+  (import.meta.env.VITE_SUPABASE_URL as string).startsWith('http')
+);
 
 export interface DiagnosticResult {
   timestamp: string;

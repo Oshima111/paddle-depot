@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabase } from "./supabase";
 
 export type AdminAction =
   | "product_created"
@@ -24,15 +24,9 @@ export interface AdminLogEntry {
 
 /**
  * Log an admin activity to the admin_log table.
- * In demo mode, logs to console instead.
  * Silently fails if the table doesn't exist yet.
  */
 export async function logAdminActivity(entry: AdminLogEntry): Promise<void> {
-  if (!isSupabaseConfigured) {
-    console.log("[Activity Log]", entry.action, "-", entry.description);
-    return;
-  }
-
   try {
     const { data: userData } = await supabase.auth.getUser();
     const adminEmail = userData?.user?.email || "unknown";

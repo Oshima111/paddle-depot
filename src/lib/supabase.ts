@@ -3,12 +3,20 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Determine if Supabase is properly configured
+if (!supabaseUrl || !supabaseAnonKey || !supabaseUrl.startsWith('http')) {
+  console.error(
+    '[Supabase] Missing or invalid Supabase environment variables.\n' +
+    '  VITE_SUPABASE_URL: ' + (supabaseUrl ? 'set' : 'NOT SET') + '\n' +
+    '  VITE_SUPABASE_ANON_KEY: ' + (supabaseAnonKey ? 'set' : 'NOT SET') + '\n' +
+    '  Authentication and data operations will fail until these are configured.'
+  )
+}
+
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'))
 
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder'
+  supabaseUrl || '',
+  supabaseAnonKey || ''
 )
 
 /**
