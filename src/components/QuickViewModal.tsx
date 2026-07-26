@@ -1,5 +1,7 @@
-import type { Product } from "../data/products";
+import { useState, useCallback, useMemo } from "react";
+import type { Product, ProductVariant } from "../data/products";
 import { getProductImageUrl, handleImageError } from "../lib/image";
+import ProductOptions from "./ProductOptions";
 
 const PESO_SIGN = "\u20B1";
 
@@ -8,14 +10,30 @@ interface QuickViewModalProps {
   onClose: () => void;
 }
 
-const stockColors = {
+const stockColors: Record<string, string> = {
   "In Stock": "bg-emerald-100 text-emerald-800",
   "Low Stock": "bg-amber-100 text-amber-800",
   "Out of Stock": "bg-red-100 text-red-800",
 };
 
 export default function QuickViewModal({ product, onClose }: QuickViewModalProps) {
-  const stockStatus = product.stockStatus || product.stock_status || "In Stock";
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
+  const handleVariantChange = useCallback((variant: ProductVariant | null) => {
+    setSelectedVariant(variant);
+  }, []);
+
+  const displayImage = useMemo(
+    () => selectedVariant?.image || product.image,
+    [selectedVariant, product.image]
+  );
+
+  const hasVariants = product.variants && product.variants.length > 0;
+
+  const displayStockStatus = selectedVariant?.stock_status ??
+    (hasVariants ? "In Stock" : (product.stockStatus || product.stock_status || "In Stock"));
+
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden animate-slide-up" onClick={(e) => e.stopPropagation()}>
@@ -25,7 +43,7 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
 
         <div className="md:w-1/2 bg-white flex items-center justify-center p-4 relative">
           <img
-            src={getProductImageUrl(product.image)}
+            src={getProductImageUrl(displayImage)}
             alt={product.name}
             className="max-h-[40vh] md:max-h-[70vh] w-auto object-contain"
             onError={handleImageError}
@@ -43,13 +61,20 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
             )}
           </div>
 
-          <div className="mt-4">
-            <span className={`text-sm font-medium px-3 py-1 rounded-full ${stockColors[stockStatus] || "bg-gray-100 text-gray-800"}`}>
-              {stockStatus}
-            </span>
-          </div>
-
           <p className="mt-6 text-gray-600 leading-relaxed flex-grow border-t pt-6">{product.description}</p>
+
+          {hasVariants && (
+            <ProductOptions product={product} onVariantChange={handleVariantChange} />
+          )}
+
+          {hasVariants && (
+            <div className="mt-6 flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-600">Stock Status:</span>
+              <span className={`text-sm font-semibold px-3 py-1 rounded-full ${stockColors[displayStockStatus] || "bg-gray-100 text-gray-800"}`}>
+                {displayStockStatus}
+              </span>
+            </div>
+          )}
 
           <div className="mt-8 pt-6 border-t">
             <h4 className="text-sm font-semibold text-gray-800 mb-3">Interested in this paddle?</h4>
@@ -79,4 +104,3 @@ export default function QuickViewModal({ product, onClose }: QuickViewModalProps
     </div>
   );
 }
-

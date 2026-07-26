@@ -4,6 +4,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase, isSupabaseConfigured, uploadProductImage } from "./lib/supabase";
 import { products as localProducts } from "./data/products";
 import { logAdminActivity } from "./lib/activity";
+import type { ProductVariant } from "./data/products";
 
 type FormData = {
   name: string;
@@ -17,32 +18,18 @@ type FormData = {
 };
 
 const AVAILABLE_BRANDS = [
-  "RPM",
-  "CRBN",
-  "JOOLA",
-  "Honolulu",
-  "Franklin",
-  "Kamito",
-  "Selkirk",
-  "Bread and Butter",
-  "Sypik",
-  "Luzz",
-  "Friday",
+  "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito",
+  "Selkirk", "Bread and Butter", "Gearbox", "Sypik", "Luzz", "Friday",
 ];
 
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE_MB = 5;
+const AVAILABLE_SHAPES = ["Elongated", "Hybrid", "Widebody"];
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<FormData>();
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>();
   const isEditMode = Boolean(id);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -54,28 +41,91 @@ export default function ProductEditPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedFileRef = useRef<File | null>(null);
   const originalProductRef = useRef<any>(null);
+  const [hasOptions, setHasOptions] = useState(false);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [newVariant, setNewVariant] = useState<ProductVariant>({ size: "", color: "", shape: "", image: "", stock_status: "In Stock" });
+  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(null);
+  const variantFileInputRef = useRef<HTMLInputElement>(null);
+  const variantImageRef = useRef<File | null>(null);
+
+  const isDuplicateVariant = (v: ProductVariant, excludeIndex?: number): boolean => {
+    return variants.some((existing, i) =>
+      i !== excludeIndex &&
+      existing.size === v.size &&
+      existing.color === v.color &&
+      existing.shape === v.shape
+    );
+  };
+
+  const addVariant = () => {
+    if (!newVariant.size && !newVariant.color && !newVariant.shape) return;
+    if (isDuplicateVariant(newVariant)) {
+      setSaveError("A variant with this size, color, and shape already exists.");
+      return;
+    }
+setVariants((prev) => [...prev, { ...newVariant, id: undefined }]);
+    setNewVariant({ size: "", color: "", shape: "", image: "", stock_status: "In Stock" });
+    variantImageRef.current = null;
+    setSaveError(null);
+  };
+
+  const startEditVariant = (index: number) => {
+    setEditingVariantIndex(index);
+    setNewVariant({ ...variants[index] });
+  };
+
+  const cancelEditVariant = () => {
+setEditingVariantIndex(null);
+    setNewVariant({ size: "", color: "", shape: "", image: "", stock_status: "In Stock" });
+    variantImageRef.current = null;
+  };
+
+  const saveEditedVariant = () => {
+    if (editingVariantIndex === null) return;
+    if (isDuplicateVariant(newVariant, editingVariantIndex)) {
+      setSaveError("A variant with this size, color, and shape already exists.");
+      return;
+    }
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[editingVariantIndex] = { ...newVariant, id: updated[editingVariantIndex].id };
+      return updated;
+    });
+    setEditingVariantIndex(null);
+    setNewVariant({ size: "", color: "", shape: "", image: "", stock_status: "In Stock" });
+    variantImageRef.current = null;
+    setSaveError(null);
+  };
+
+  const removeVariant = (index: number) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleVariantFileChange = () => {
+    const file = variantFileInputRef.current?.files?.[0] ?? null;
+    if (!file) return;
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) { setSaveError("Invalid file type for variant image. Allowed: JPG, PNG, WebP."); return; }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) { setSaveError(`Variant image too large. Maximum is ${MAX_FILE_SIZE_MB} MB.`); return; }
+    variantImageRef.current = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setNewVariant((prev) => ({ ...prev, image: e.target?.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     if (isEditMode) {
       if (!isSupabaseConfigured) {
         const product = localProducts.find((p) => p.id === Number(id));
-        if (!product) {
-          setFetchError("Product not found.");
-          navigate("/admin/products");
-          return;
-        }
+        if (!product) { setFetchError("Product not found."); navigate("/admin/products"); return; }
         originalProductRef.current = product;
         resetForm(product);
         return;
       }
 
       const fetchProduct = async () => {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", id)
-          .single();
-
+        const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
         if (error || !data) {
           console.error("Error fetching product:", error);
           setFetchError("Failed to fetch product.");
@@ -83,16 +133,19 @@ export default function ProductEditPage() {
         } else {
           originalProductRef.current = data;
           const product = data as any;
-          resetForm({
-            name: product.name || "",
-            brand: product.brand || "",
-            price: product.price || 0,
+          const { data: variantData } = await supabase
+            .from("product_variants")
+            .select("*")
+            .eq("product_id", id)
+            .order("id");
+          resetForm(Object.assign(product, {
+            name: product.name || "", brand: product.brand || "", price: product.price || 0,
             description: product.description || "",
             stockStatus: product.stock_status || product.stockStatus || "In Stock",
-            featured: product.featured || false,
-            is_new: product.is_new || false,
-            image: product.image || "",
-          } as any);
+            featured: product.featured || false, is_new: product.is_new || false, image: product.image || "",
+            has_options: product.has_options || false,
+            variants: variantData || [],
+          }));
         }
       };
       fetchProduct();
@@ -102,578 +155,540 @@ export default function ProductEditPage() {
   const resetForm = (product: any) => {
     const imageVal = product.image || "";
     reset({
-      name: product.name || "",
-      brand: product.brand || "",
-      price: product.price || 0,
+      name: product.name || "", brand: product.brand || "", price: product.price || 0,
       description: product.description || "",
       stockStatus: product.stockStatus || product.stock_status || "In Stock",
-      featured: product.featured || false,
-      is_new: product.is_new || false,
-      image: imageVal,
+      featured: product.featured || false, is_new: product.is_new || false, image: imageVal,
     });
     setImagePreview(imageVal || null);
+    setHasOptions(product.has_options || false);
+    setVariants(product.variants || []);
+    setNewVariant({ size: "", color: "", shape: "", image: "", stock_status: "In Stock" });
+    setEditingVariantIndex(null);
+    variantImageRef.current = null;
   };
 
   const validateAndSetFile = useCallback((file: File | null) => {
     setFileError(null);
     if (!file) return;
-
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      setFileError("Invalid file type. Allowed: JPG, JPEG, PNG, WebP.");
-      return;
-    }
-
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      setFileError(`File too large. Maximum is ${MAX_FILE_SIZE_MB} MB.`);
-      return;
-    }
-
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) { setFileError("Invalid file type. Allowed: JPG, JPEG, PNG, WebP."); return; }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) { setFileError(`File too large. Maximum is ${MAX_FILE_SIZE_MB} MB.`); return; }
     selectedFileRef.current = file;
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target?.result as string);
     reader.readAsDataURL(file);
   }, []);
 
-  const handleFileChange = () => {
-    const file = fileInputRef.current?.files?.[0] ?? null;
-    validateAndSetFile(file);
-  };
+  const handleFileChange = () => { const file = fileInputRef.current?.files?.[0] ?? null; validateAndSetFile(file); };
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragOver(false);
-      const file = e.dataTransfer.files?.[0] ?? null;
-      validateAndSetFile(file);
-    },
-    [validateAndSetFile]
-  );
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-  };
-
-  const handleRemoveImage = () => {
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    selectedFileRef.current = null;
-    setImagePreview(null);
-    setFileError(null);
-    setValue("image", "");
-  };
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false); const file = e.dataTransfer.files?.[0] ?? null; validateAndSetFile(file);
+  }, [validateAndSetFile]);
 
   const onSubmit = async (formData: FormData) => {
     setSaveError(null);
     setSaveSuccess(null);
+    setUploadProgress(true);
 
     try {
-      let imageFile = selectedFileRef.current;
-      if (!imageFile) {
-        imageFile = fileInputRef.current?.files?.[0] ?? null;
+      let finalImageUrl = formData.image;
+      if (selectedFileRef.current) {
+        const oldImageUrl = originalProductRef.current?.image || null;
+        finalImageUrl = await uploadProductImage(selectedFileRef.current, oldImageUrl);
       }
 
-      let imageUrl = formData.image;
-      let imageAction: string | null = null;
-
-      if (imageFile) {
-        if (!isSupabaseConfigured) {
-          imageUrl =
-            "/paddles/" + formData.name.replace(/\s+/g, "").toUpperCase() + ".png";
-        } else {
-          setUploadProgress(true);
-          const oldImageUrl = isEditMode ? formData.image : undefined;
-          imageUrl = await uploadProductImage(imageFile, oldImageUrl);
-          setUploadProgress(false);
-        }
-        imageAction = isEditMode && formData.image ? "image_replaced" : "image_uploaded";
-      } else if (isEditMode && !imageUrl && formData.image) {
-        // Image was removed
-        imageAction = "image_removed";
-      }
-
-      const productData = {
+      const productPayload = {
         name: formData.name,
         brand: formData.brand,
-        price: Number(formData.price),
+        price: formData.price,
         description: formData.description,
         stock_status: formData.stockStatus,
         featured: formData.featured,
         is_new: formData.is_new,
-        image: imageUrl || "",
+        image: finalImageUrl,
+        has_options: hasOptions,
         updated_at: new Date().toISOString(),
       };
 
       if (!isSupabaseConfigured) {
-        setSaveSuccess(
-          isEditMode ? "Product updated (demo mode)" : "Product created (demo mode)"
-        );
-        setTimeout(() => navigate("/admin/products"), 1000);
+        setSaveSuccess("Product saved (local mode)");
+        setUploadProgress(false);
         return;
       }
 
-if (isEditMode) {
-        // PRODUCTION DIAGNOSTIC: Log session info before making Supabase call
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        console.group("[PROD DIAGNOSTIC] Update Product");
-        console.log("Supabase configured:", isSupabaseConfigured);
-        if (sessionError) console.error("Session fetch error:", sessionError);
-        console.log("Session exists:", !!sessionData?.session);
-        console.log("Current user:", sessionData?.session?.user?.email);
-        console.log("User ID:", sessionData?.session?.user?.id);
-        console.log("Product ID being updated:", id);
-        console.log("Update data:", JSON.stringify(productData, null, 2));
-        console.groupEnd();
+      let result;
+      let savedProductId: number;
 
-        const { error } = await supabase
+      if (isEditMode) {
+        result = await supabase
           .from("products")
-          .update(productData)
-          .eq("id", id);
-        if (error) {
-          console.error("[ProductEditPage] Supabase update error:", error);
-          console.error("[PROD DIAGNOSTIC] Full error object:", JSON.stringify(error, null, 2));
-          if (error.message?.includes("permission denied") || error.code === "42501") {
-            throw new Error(
-              "Permission denied. Your admin account may not have the correct database permissions. " +
-              "Make sure your email is in the admin_allowlist table in Supabase, or run the migration '00002_admin_allowlist.sql'."
-            );
-          }
-          throw new Error("Database update failed: " + error.message);
+          .update(productPayload)
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (result.error) {
+          setSaveError(`Failed to save product: ${result.error.message}`);
+          setUploadProgress(false);
+          return;
         }
 
-        // Build activity description
-        const original = originalProductRef.current;
-        let changes: string[] = [];
-        if (original && original.price !== productData.price)
-          changes.push("price changed");
-        if (
-          original &&
-          (original.stock_status || original.stockStatus) !== productData.stock_status
-        )
-          changes.push("stock status changed");
-        if (imageAction === "image_uploaded") changes.push("image uploaded");
-        if (imageAction === "image_replaced") changes.push("image replaced");
-        if (imageAction === "image_removed") changes.push("image removed");
+        savedProductId = Number(id);
 
         await logAdminActivity({
           action: "product_updated",
-          description: `Updated ${formData.name}${
-            changes.length ? " (" + changes.join(", ") + ")" : ""
-          }`,
-          product_id: id,
+          description: `Updated ${formData.name}`,
+          product_id: savedProductId,
           product_name: formData.name,
-          metadata: { changes },
         });
-} else {
-        // PRODUCTION DIAGNOSTIC: Log session info before making Supabase call
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        console.group("[PROD DIAGNOSTIC] Create Product");
-        console.log("Supabase configured:", isSupabaseConfigured);
-        if (sessionError) console.error("Session fetch error:", sessionError);
-        console.log("Session exists:", !!sessionData?.session);
-        console.log("Current user:", sessionData?.session?.user?.email);
-        console.log("User ID:", sessionData?.session?.user?.id);
-        console.log("Insert data:", JSON.stringify(productData, null, 2));
-        console.groupEnd();
-
-        const { data: inserted, error } = await supabase
+      } else {
+        result = await supabase
           .from("products")
-          .insert({
-            ...productData,
-            created_at: new Date().toISOString(),
-          })
+          .insert({ ...productPayload, created_at: new Date().toISOString() })
           .select()
           .single();
-        if (error) {
-          console.error("[ProductEditPage] Supabase insert error:", error);
-          console.error("[PROD DIAGNOSTIC] Full error object:", JSON.stringify(error, null, 2));
-          if (error.message?.includes("permission denied") || error.code === "42501") {
-            throw new Error(
-              "Permission denied. Your admin account may not have the correct database permissions. " +
-              "Make sure your email is in the admin_allowlist table in Supabase, or run the migration '00002_admin_allowlist.sql'."
-            );
-          }
-          throw new Error("Database insert failed: " + error.message);
+
+        if (result.error) {
+          setSaveError(`Failed to create product: ${result.error.message}`);
+          setUploadProgress(false);
+          return;
         }
 
-        const newId = (inserted as any)?.id;
+        savedProductId = (result.data as any)?.id;
+
         await logAdminActivity({
           action: "product_created",
-          description: `Added ${formData.name} (${formData.brand})`,
-          product_id: newId,
+          description: `Created ${formData.name}`,
+          product_id: savedProductId,
           product_name: formData.name,
-          metadata: { brand: formData.brand, price: formData.price },
         });
       }
 
-      navigate("/admin/products");
-    } catch (error: any) {
+      if (hasOptions && variants.length > 0) {
+        await supabase
+          .from("product_variants")
+          .delete()
+          .eq("product_id", savedProductId);
+
+const variantRows = variants.map((v) => ({
+          product_id: savedProductId,
+          size: v.size || "",
+          color: v.color || "",
+          shape: v.shape || "",
+          image: v.image || "",
+          stock_status: v.stock_status || "In Stock",
+        }));
+
+        const { error: variantError } = await supabase
+          .from("product_variants")
+          .insert(variantRows);
+
+        if (variantError) {
+          console.error("Error saving variants:", variantError);
+          setSaveError(`Product saved but failed to save variants: ${variantError.message}`);
+          setUploadProgress(false);
+          return;
+        }
+      } else if (hasOptions) {
+        await supabase
+          .from("product_variants")
+          .delete()
+          .eq("product_id", savedProductId);
+      }
+
+      setSaveSuccess(isEditMode ? "Product updated successfully!" : "Product created successfully!");
+    } catch (err) {
+      console.error("Error saving product:", err);
+      setSaveError(err instanceof Error ? err.message : "An unexpected error occurred while saving.");
+    } finally {
       setUploadProgress(false);
-      const message = error?.message || "An unexpected error occurred.";
-      console.error("[ProductEditPage] Error saving product:", error);
-      setSaveError(message);
     }
   };
 
-  if (fetchError) {
-    return <div className="text-red-500 text-center py-12">{fetchError}</div>;
-  }
-
-return (
-    <div className="max-w-2xl mx-auto">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link to="/admin/products" className="hover:text-emerald-600 transition-colors">Products</Link>
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
-        <span className="text-gray-900 font-medium">{isEditMode ? "Edit" : "Add"} Paddle</span>
-      </nav>
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">{isEditMode ? "Edit Product" : "Add New Product"}</h1>
-          <p className="text-sm text-gray-500 mt-1">{isEditMode ? "Update the details of this paddle." : "Add a new paddle to your catalog."}</p>
+  return (
+    <div>
+      {saveSuccess && (
+        <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium bg-emerald-600 text-white">
+          {saveSuccess}
         </div>
+      )}
+      {saveError && (
+        <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium bg-red-600 text-white">
+          {saveError}
+        </div>
+      )}
+
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <Link to="/admin/products" className="p-2 -ml-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" aria-label="Back to products">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m7 7l-7-7 7-7" />
+            </svg>
+          </Link>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{isEditMode ? "Edit Product" : "Add Product"}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {isEditMode ? "Update the details of this paddle" : "Enter the details of the new paddle"}
+            </p>
+          </div>
+      </div>
       </div>
 
-      {!isSupabaseConfigured && (
-        <div className="mb-6 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3">
-          Demo Mode — Changes are simulated. Set up Supabase for real persistence.
-        </div>
-      )}
-
-      {saveError && (
-        <div className="mb-6 text-xs bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 whitespace-pre-wrap">{saveError}</div>
-      )}
-
-      {saveSuccess && (
-        <div className="mb-6 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-4 py-3">{saveSuccess}</div>
+      {fetchError && (
+        <div className="text-red-500 text-center py-12">{fetchError}</div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Hidden input to track image URL in react-hook-form */}
-        <input type="hidden" {...register("image")} />
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Basic Information</h3>
 
-        {/* Product Information Section */}
-        <div className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-900">Product Information</h3>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Product Name</label>
+            <input
+              type="text"
+              {...register("name", { required: "Product name is required" })}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+              placeholder="e.g. RPM Q2"
+            />
+            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
           </div>
-          <div className="p-5 space-y-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5"
-              >
-                Product Name
-              </label>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
+            <select
+              {...register("brand", { required: "Brand is required" })}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            >
+              <option value="">Select a brand...</option>
+              {AVAILABLE_BRANDS.map((brand) => (
+                <option key={brand} value={brand}>{brand}</option>
+              ))}
+            </select>
+            {errors.brand && <p className="mt-1 text-xs text-red-500">{errors.brand.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Price (₱)</label>
+            <input
+              type="number"
+              {...register("price", { required: "Price is required", min: { value: 1, message: "Price must be greater than 0" } })}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+              placeholder="e.g. 13000"
+            />
+            {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+            <textarea
+              {...register("description", { required: "Description is required" })}
+              rows={4}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"
+              placeholder="Describe the paddle..."
+            />
+            {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Stock Status</label>
+            <select
+              {...register("stockStatus")}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            >
+              <option value="In Stock">In Stock</option>
+              <option value="Low Stock">Low Stock</option>
+              <option value="Out of Stock">Out of Stock</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
               <input
-                type="text"
-                id="name"
-                {...register("name", { required: "Product name is required" })}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                placeholder="e.g. RPM Friction Pro V2"
+                type="checkbox"
+                {...register("featured")}
+                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
-              {errors.name && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="brand"
-                  className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5"
-                >
-                  Brand
-                </label>
-                <select
-                  id="brand"
-                  {...register("brand", { required: "Please select a brand" })}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                >
-                  <option value="">Select a brand</option>
-                  {AVAILABLE_BRANDS.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
-                {errors.brand && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {errors.brand.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label
-                  htmlFor="price"
-                  className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5"
-                >
-                  Price (PHP)
-                </label>
-                <input
-                  type="number"
-                  id="price"
-                  {...register("price", {
-                    required: "Price is required",
-                    valueAsNumber: true,
-                  })}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
-                  placeholder="13000"
-                />
-                {errors.price && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {errors.price.message}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                {...register("description")}
-                rows={4}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"
-                placeholder="Describe the paddle..."
+              <span className="text-sm font-medium text-gray-700">Featured</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register("is_new")}
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-            </div>
-          </div>
+              <span className="text-sm font-medium text-gray-700">New Arrival</span>
+            </label>
+        </div>
         </div>
 
-{/* Inventory Section */}
-        <div className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z" />
-                </svg>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-900">Inventory</h3>
-            </div>
-          </div>
-          <div className="p-5 space-y-4">
-            <div>
-              <label
-                htmlFor="stockStatus"
-                className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5"
-              >
-                Stock Status
-              </label>
-              <select
-                id="stockStatus"
-                {...register("stockStatus")}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              >
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Out of Stock">Out of Stock</option>
-              </select>
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 pt-1">
-              <label className="relative inline-flex items-center cursor-pointer gap-3">
-                <input
-                  type="checkbox"
-                  {...register("featured")}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                <span className="text-sm text-gray-700">Featured Product</span>
-              </label>
-              <label className="relative inline-flex items-center cursor-pointer gap-3">
-                <input
-                  type="checkbox"
-                  {...register("is_new")}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                <span className="text-sm text-gray-700">New Product</span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Paddle Image</h3>
 
-        {/* Product Image Section */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">
-              Product Image
-            </h3>
-          </div>
-          <div className="p-5">
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+              dragOver
+                ? "border-emerald-500 bg-emerald-50"
+                : "border-gray-200 hover:border-gray-300 bg-gray-50"
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
             {imagePreview ? (
-              <div className="space-y-4">
-                <div className="w-full max-w-[240px] aspect-square bg-gray-50 rounded-lg border border-gray-200 overflow-hidden mx-auto">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-full object-contain p-3"
-                  />
-                </div>
-                <div className="flex items-center justify-center gap-3">
-                  <label className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"
-                      />
-                    </svg>
-                    Replace
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                      />
-                    </svg>
-                    Remove
-                  </button>
-                </div>
-                <p className="text-[10px] text-gray-400 text-center">
-                  Supported: JPG, JPEG, PNG, WebP (max {MAX_FILE_SIZE_MB} MB)
-                </p>
+              <div className="flex flex-col items-center gap-3">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-h-40 w-auto object-contain rounded-lg"
+                />
+                <p className="text-xs text-gray-400">Click or drag to change image</p>
               </div>
             ) : (
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onClick={() => fileInputRef.current?.click()}
-                className={`flex flex-col items-center justify-center py-10 px-4 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                  dragOver
-                    ? "border-emerald-400 bg-emerald-50/50"
-                    : "border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <svg
-                  className={`w-10 h-10 mb-3 transition-colors ${
-                    dragOver ? "text-emerald-500" : "text-gray-300"
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                  />
+              <div className="flex flex-col items-center gap-2">
+                <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                 </svg>
-                <p
-                  className={`text-sm font-medium transition-colors ${
-                    dragOver ? "text-emerald-600" : "text-gray-500"
-                  }`}
-                >
-                  {dragOver ? "Drop image here" : "Upload an image"}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Drag & drop or click to browse
-                </p>
-                <p className="text-[10px] text-gray-300 mt-1">
-                  JPG, JPEG, PNG, WebP (max {MAX_FILE_SIZE_MB} MB)
-                </p>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </div>
-            )}
-            {fileError && (
-              <p className="mt-2 text-xs text-red-500 text-center">
-                {fileError}
-              </p>
-            )}
-            {imagePreview && uploadProgress && (
-              <div className="mt-3 flex items-center justify-center gap-2 text-xs text-emerald-600">
-                <span className="inline-block w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></span>
-                Uploading image...
+                <p className="text-sm text-gray-500">Drop an image here or click to browse</p>
+                <p className="text-xs text-gray-400">JPG, PNG, or WebP up to 5MB</p>
               </div>
             )}
           </div>
+
+          {fileError && <p className="text-xs text-red-500">{fileError}</p>}
+
+          <input type="hidden" {...register("image")} />
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Product Variants</h3>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hasOptions}
+                onChange={(e) => setHasOptions(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              <span className="ml-3 text-sm font-medium text-gray-700">
+                {hasOptions ? "Enabled" : "Disabled"}
+              </span>
+            </label>
+          </div>
+          <p className="text-xs text-gray-400">
+            Enable this to allow customers to customize the product by selecting from different sizes, colors, or shape combinations. Each variant can have its own image.
+          </p>
+
+          {hasOptions && (
+            <div className="space-y-6 pt-2 border-t border-gray-100">
+              {variants.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Existing Variants</label>
+                  <div className="space-y-2">
+                    {variants.map((variant, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {variant.image && (
+                            <img
+                              src={variant.image}
+                              alt=""
+                              className="w-10 h-10 rounded-lg object-cover bg-white border border-gray-200 flex-shrink-0"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {[variant.size, variant.color, variant.shape].filter(Boolean).join(" / ") || "Empty variant"}
+                            </p>
+                            <p className="text-xs text-gray-400 truncate">{variant.image || "No image"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => startEditVariant(index)}
+                            className="p-1.5 text-gray-400 hover:text-emerald-600 transition-colors"
+                            title="Edit variant"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeVariant(index)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Remove variant"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  {editingVariantIndex !== null ? "Edit Variant" : "Add New Variant"}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Size</label>
+                    <input
+                      type="text"
+                      value={newVariant.size}
+                      onChange={(e) => setNewVariant((prev) => ({ ...prev, size: e.target.value }))}
+                      placeholder="e.g. 16mm"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Color</label>
+                    <input
+                      type="text"
+                      value={newVariant.color}
+                      onChange={(e) => setNewVariant((prev) => ({ ...prev, color: e.target.value }))}
+                      placeholder="e.g. Black"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Shape</label>
+                    <select
+                      value={newVariant.shape}
+                      onChange={(e) => setNewVariant((prev) => ({ ...prev, shape: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                    >
+                      <option value="">Select shape...</option>
+                      {AVAILABLE_SHAPES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Variant Image</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      ref={variantFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleVariantFileChange}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => variantFileInputRef.current?.click()}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      {newVariant.image ? "Change Image" : "Upload Image"}
+                    </button>
+                    {newVariant.image && (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={newVariant.image}
+                          alt="Preview"
+                          className="w-12 h-12 rounded-lg object-cover bg-gray-100 border border-gray-200"
+                          onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNewVariant((prev) => ({ ...prev, image: "" }))}
+                          className="text-xs text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Stock Status</label>
+                  <select
+                    value={newVariant.stock_status}
+                    onChange={(e) => setNewVariant((prev) => ({ ...prev, stock_status: e.target.value as ProductVariant['stock_status'] }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  >
+                    <option value="In Stock">In Stock</option>
+                    <option value="Low Stock">Low Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  {editingVariantIndex !== null ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={saveEditedVariant}
+                        disabled={!newVariant.size && !newVariant.color && !newVariant.shape}
+                        className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditVariant}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      disabled={!newVariant.size && !newVariant.color && !newVariant.shape}
+                      className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Add Variant
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
           <Link
             to="/admin/products"
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
+            className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={isSubmitting || uploadProgress}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
-            {uploadProgress ? (
+            {(isSubmitting || uploadProgress) ? (
               <>
-                <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                Uploading...
-              </>
-            ) : isSubmitting ? (
-              <>
-                <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Saving...
               </>
-            ) : isEditMode ? (
-              "Update Product"
             ) : (
-              "Create Product"
+              isEditMode ? "Update Product" : "Create Product"
             )}
           </button>
         </div>
@@ -681,4 +696,3 @@ return (
     </div>
   );
 }
-

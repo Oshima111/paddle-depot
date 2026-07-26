@@ -1,3 +1,13 @@
+export interface ProductVariant {
+  id?: number;
+  product_id?: number;
+  size: string;
+  color: string;
+  shape: string;
+  image: string;
+  stock_status?: "In Stock" | "Low Stock" | "Out of Stock";
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -10,6 +20,8 @@ export interface Product {
   description: string;
   featured?: boolean;
   is_new?: boolean;
+  has_options?: boolean;
+  variants?: ProductVariant[];
 }
 
 export const products: Product[] = [

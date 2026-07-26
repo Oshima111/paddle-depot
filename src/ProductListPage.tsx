@@ -25,6 +25,7 @@ const brandList = [
   "Kamito",
   "Selkirk",
   "Bread and Butter",
+  "Gearbox",
   "Sypik",
   "Luzz",
   "Friday",
@@ -993,4 +994,3 @@ export default function ProductListPage() {
     </div>
   );
 }
-

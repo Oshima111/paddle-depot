@@ -4,10 +4,10 @@ import QuickViewModal from "./QuickViewModal";
 import { brandsData } from "./brands";
 import AnimatedSectionTitle from "./AnimatedSectionTitle";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
-import type { Product } from "../data/products";
+import type { Product, ProductVariant } from "../data/products";
 import { products as localProducts } from "../data/products";
 
-const BRAND_ORDER = ["All", "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito", "Selkirk", "Bread and Butter", "Sypik", "Luzz", "Friday"];
+const BRAND_ORDER = ["All", "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito", "Selkirk", "Bread and Butter", "Gearbox", "Sypik", "Luzz", "Friday"];
 
 interface ProductGridProps {
   selectedBrand: string;
@@ -39,12 +39,35 @@ const [priceRange, setPriceRange] = useState({ min: 0, max: 99999 });
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
+if (error || !data || data.length === 0) {
         // If Supabase is unavailable or has no data, use the local product data
         if (error) console.error('Supabase error, falling back to local data:', error);
         setProducts(localProducts);
       } else {
-        setProducts(data as Product[]);
+        // Fetch variants for each product and attach them
+        const productIds = data.map(p => p.id);
+        const { data: allVariants, error: variantsError } = await supabase
+          .from('product_variants')
+          .select('*')
+          .in('product_id', productIds)
+          .order('id');
+
+        if (variantsError) {
+          console.error('Error fetching variants:', variantsError);
+          setProducts(data as Product[]); // Fallback to products without variants
+        } else {
+          const variantsByProductId = (allVariants || []).reduce((acc, v) => {
+            if (!acc[v.product_id]) acc[v.product_id] = [];
+            acc[v.product_id].push(v);
+            return acc;
+          }, {} as Record<number, ProductVariant[]>);
+
+          const productsWithVariants = data.map(p => ({
+            ...p,
+            variants: variantsByProductId[p.id] || [],
+          }));
+          setProducts(productsWithVariants as Product[]);
+        }
       }
       setIsLoading(false);
     };
