@@ -26,8 +26,8 @@ export default function Footer({ setSelectedBrand }: FooterProps) {
           {/* Column 1: Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <img src="/paddle-depot-logo.png" alt="Paddle Depot Logo" className="w-7 h-7" />
-              <span className="text-lg font-bold text-white">Paddle Depot</span>
+              <img src="/paddle-depot-logo.png" alt="Paddle Depot Logo" className="w-24 h-24 object-contain" />
+              <span className="text-lg font-extrabold text-white tracking-tight">The Paddle Depot</span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               Your destination for premium pickleball paddles.

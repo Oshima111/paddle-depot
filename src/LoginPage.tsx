@@ -100,7 +100,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <div className="text-center">
-          <img src="/paddle-depot-logo.png" alt="Paddle Depot" className="w-16 h-16 mx-auto" />
+          <img src="/paddle-depot-logo.png" alt="Paddle Depot" className="w-16 h-16 mx-auto object-contain" />
           <h2 className="mt-4 text-2xl font-bold text-gray-900">Admin Login</h2>
           <p className="mt-1 text-sm text-gray-500">Sign in with your Supabase account</p>
         </div>
@@ -144,4 +144,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

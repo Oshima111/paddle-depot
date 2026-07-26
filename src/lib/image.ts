@@ -31,4 +31,3 @@ export function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event
     img.src = FALLBACK_IMAGE;
   }
 }
-

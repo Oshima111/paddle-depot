@@ -12,6 +12,13 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
 
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden border border-gray-200/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      {/* Clickable overlay for mobile and tablet, which opens the quick view modal. */}
+      <div
+        className="absolute inset-0 z-10 cursor-pointer lg:hidden"
+        onClick={() => onQuickView(product)}
+        role="button"
+        aria-label={`View details for ${product.name}`}
+      />
       {/* Image */}
       <div className="relative aspect-square bg-white overflow-hidden">
         <img
@@ -47,7 +54,9 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
             {PESO_SIGN}{(product.price).toLocaleString()}
           </span>
         </div>
-        <button onClick={() => onQuickView(product)} className="mt-4 w-full px-4 py-2 bg-gray-100 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-800 hover:text-white transition-colors duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100">
+        {/* This button is visible on hover on desktop. On mobile, it is layered above the
+            clickable overlay to ensure it remains interactive. */}
+        <button onClick={() => onQuickView(product)} className="relative z-20 mt-4 w-full px-4 py-2 bg-gray-100 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-800 hover:text-white transition-colors duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100">
           View Paddle
         </button>
       </div>

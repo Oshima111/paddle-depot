@@ -9,12 +9,12 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+        <div className="flex items-center justify-between h-20 sm:h-24 gap-4">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="#" className="flex items-center gap-2">
-            <img src="/paddle-depot-logo.png" alt="Paddle Depot Logo" className="w-8 h-8" />
-              <span className="text-xl font-bold text-gray-900 tracking-wide">Paddle Depot</span>
+            <a href="#" className="flex items-center gap-3">
+            <img src="/paddle-depot-logo.png" alt="Paddle Depot Logo" className="h-14 w-14 object-contain" />
+              <span className="text-xl font-extrabold text-gray-900 tracking-tight">The Paddle Depot</span>
             </a>
           </div>
 
