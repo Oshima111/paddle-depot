@@ -11,7 +11,7 @@ type FormData = {
   brand: string;
   price: number;
   description: string;
-  stockStatus: "In Stock" | "Low Stock" | "Out of Stock";
+stockStatus: "In Stock" | "Low Stock" | "Pre-Order" | "Out of Stock";
   featured: boolean;
   is_new: boolean;
   image: string;
@@ -391,12 +391,13 @@ const variantRows = variants.map((v) => ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Stock Status</label>
-            <select
+<select
               {...register("stockStatus")}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
             >
               <option value="In Stock">In Stock</option>
               <option value="Low Stock">Low Stock</option>
+              <option value="Pre-Order">Pre-Order</option>
               <option value="Out of Stock">Out of Stock</option>
             </select>
           </div>
@@ -631,6 +632,7 @@ const variantRows = variants.map((v) => ({
                   >
                     <option value="In Stock">In Stock</option>
                     <option value="Low Stock">Low Stock</option>
+                    <option value="Pre-Order">Pre-Order</option>
                     <option value="Out of Stock">Out of Stock</option>
                   </select>
                 </div>

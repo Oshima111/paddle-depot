@@ -31,12 +31,13 @@ const brandList = [
   "Friday",
 ];
 
-const stockFilterOptions = ["All", "In Stock", "Low Stock", "Out of Stock"];
+const stockFilterOptions = ["All", "In Stock", "Low Stock", "Pre-Order", "Out of Stock"];
 
 function StockBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    "In Stock": "bg-emerald-50 text-emerald-700 border-emerald-200",
+"In Stock": "bg-emerald-50 text-emerald-700 border-emerald-200",
     "Low Stock": "bg-amber-50 text-amber-700 border-amber-200",
+    "Pre-Order": "bg-blue-50 text-blue-700 border-blue-200",
     "Out of Stock": "bg-red-50 text-red-700 border-red-200",
   };
   return (
@@ -47,10 +48,12 @@ function StockBadge({ status }: { status: string }) {
     >
       <span
         className={`w-1.5 h-1.5 rounded-full ${
-          status === "In Stock"
+status === "In Stock"
             ? "bg-emerald-500"
             : status === "Low Stock"
             ? "bg-amber-500"
+            : status === "Pre-Order"
+            ? "bg-blue-500"
             : "bg-red-500"
         }`}
       />
@@ -110,7 +113,7 @@ function InlineStockDropdown({
     });
   };
 
-  const options = ["In Stock", "Low Stock", "Out of Stock"];
+const options = ["In Stock", "Low Stock", "Pre-Order", "Out of Stock"];
 
   return (
     <div className="relative">
@@ -137,10 +140,12 @@ function InlineStockDropdown({
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    opt === "In Stock"
+opt === "In Stock"
                       ? "bg-emerald-500"
                       : opt === "Low Stock"
                       ? "bg-amber-500"
+                      : opt === "Pre-Order"
+                      ? "bg-blue-500"
                       : "bg-red-500"
                   }`}
                 />
@@ -231,6 +236,8 @@ export default function ProductListPage() {
       setStockFilter("In Stock");
     } else if (filter === "low-stock") {
       setStockFilter("Low Stock");
+} else if (filter === "pre-order") {
+      setStockFilter("Pre-Order");
     } else if (filter === "out-of-stock") {
       setStockFilter("Out of Stock");
     }

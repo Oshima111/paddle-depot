@@ -15,6 +15,7 @@ interface DashboardStats {
   totalProducts: number;
   inStock: number;
   lowStock: number;
+  preOrder: number;
   outOfStock: number;
   featured: number;
 }
@@ -80,7 +81,14 @@ const StockBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
     "In Stock": "bg-emerald-50 text-emerald-700 border-emerald-200",
     "Low Stock": "bg-amber-50 text-amber-700 border-amber-200",
+    "Pre-Order": "bg-blue-50 text-blue-700 border-blue-200",
     "Out of Stock": "bg-red-50 text-red-700 border-red-200",
+  };
+  const dotColors: Record<string, string> = {
+    "In Stock": "bg-emerald-500",
+    "Low Stock": "bg-amber-500",
+    "Pre-Order": "bg-blue-500",
+    "Out of Stock": "bg-red-500",
   };
   return (
     <span
@@ -89,9 +97,7 @@ const StockBadge = ({ status }: { status: string }) => {
       }`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          status === "In Stock" ? "bg-emerald-500" : status === "Low Stock" ? "bg-amber-500" : "bg-red-500"
-        }`}
+        className={`w-1.5 h-1.5 rounded-full ${dotColors[status] || "bg-gray-500"}`}
       />
       {status}
     </span>
@@ -228,6 +234,7 @@ useEffect(() => {
           totalProducts: 0,
           inStock: 0,
           lowStock: 0,
+          preOrder: 0,
           outOfStock: 0,
           featured: 0,
         });
@@ -243,6 +250,7 @@ useEffect(() => {
         totalProducts: data.length,
         inStock: data.filter((p) => getStockStatus(p) === "In Stock").length,
         lowStock: data.filter((p) => getStockStatus(p) === "Low Stock").length,
+        preOrder: data.filter((p) => getStockStatus(p) === "Pre-Order").length,
         outOfStock: data.filter((p) => getStockStatus(p) === "Out of Stock").length,
         featured: data.filter((p) => p.featured).length,
       });
@@ -352,7 +360,7 @@ const ActionsCard = ({
       </div>
 
       {/* KPI / Statistics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
         <StatCard
           title="Total Products"
           value={stats?.totalProducts || 0}
@@ -375,6 +383,13 @@ const ActionsCard = ({
           icon={<AlertTriangleIcon size={22} />}
         />
         <StatCard
+          title="Pre-Order"
+          value={stats?.preOrder || 0}
+          color="bg-blue-50 text-blue-600"
+          onClick={() => navigate(buildFilterUrl("pre-order"))}
+          icon={<ClockIcon size={22} />}
+        />
+        <StatCard
           title="Out of Stock"
           value={stats?.outOfStock || 0}
           color="bg-red-50 text-red-600"
@@ -390,13 +405,14 @@ const ActionsCard = ({
         />
       </div>
 
-      {/* Stock Overview */}
+{/* Stock Overview */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
         <h3 className="text-base font-semibold text-gray-900 mb-5">Stock Overview</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
           {[
             { label: "In Stock", value: stats?.inStock || 0, color: "bg-emerald-500", icon: <CheckCircleIcon size={18} />, iconBg: "text-emerald-600" },
             { label: "Low Stock", value: stats?.lowStock || 0, color: "bg-amber-500", icon: <AlertTriangleIcon size={18} />, iconBg: "text-amber-600" },
+            { label: "Pre-Order", value: stats?.preOrder || 0, color: "bg-blue-500", icon: <ClockIcon size={18} />, iconBg: "text-blue-600" },
             { label: "Out of Stock", value: stats?.outOfStock || 0, color: "bg-red-500", icon: <XCircleIcon size={18} />, iconBg: "text-red-600" },
           ].map((item) => {
             const maxStock = Math.max(stats?.totalProducts || 1, 1);

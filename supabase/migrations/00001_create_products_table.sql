@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS products (
   price NUMERIC NOT NULL,
   image TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
-  stock_status TEXT NOT NULL DEFAULT 'In Stock' CHECK (stock_status IN ('In Stock', 'Low Stock', 'Out of Stock')),
+  stock_status TEXT NOT NULL DEFAULT 'In Stock' CHECK (stock_status IN ('In Stock', 'Low Stock', 'Pre-Order', 'Out of Stock')),
   featured BOOLEAN NOT NULL DEFAULT false,
   is_new BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

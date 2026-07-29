@@ -5,7 +5,7 @@ export interface ProductVariant {
   color: string;
   shape: string;
   image: string;
-  stock_status?: "In Stock" | "Low Stock" | "Out of Stock";
+  stock_status?: "In Stock" | "Low Stock" | "Pre-Order" | "Out of Stock";
 }
 
 export interface Product {
@@ -14,8 +14,8 @@ export interface Product {
   brand: string;
   price: number;
   originalPrice?: number;
-  stockStatus: "In Stock" | "Low Stock" | "Out of Stock";
-  stock_status?: "In Stock" | "Low Stock" | "Out of Stock";
+  stockStatus: "In Stock" | "Low Stock" | "Pre-Order" | "Out of Stock";
+  stock_status?: "In Stock" | "Low Stock" | "Pre-Order" | "Out of Stock";
   image: string;
   description: string;
   featured?: boolean;
