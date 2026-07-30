@@ -15,5 +15,5 @@ export const brandsData: Brand[] = [
   { name: "Sypik", logoUrl: "/logos/sypikaustralia-com-au-logo.png" },
   { name: "Luzz", logoUrl: "/logos/luzzpickleball-com-logo.png" },
   { name: "Friday", logoUrl: "/logos/friday-logo.png" },
-  { name: "Gearbox", logoUrl: "/logos/gearboxs-logo.png" },
+  { name: "Wika", logoUrl: "/logos/wika-logo.webp" },
 ];

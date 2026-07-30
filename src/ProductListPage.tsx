@@ -25,7 +25,7 @@ const brandList = [
   "Kamito",
   "Selkirk",
   "Bread and Butter",
-  "Gearbox",
+  "Wika",
   "Sypik",
   "Luzz",
   "Friday",

@@ -208,8 +208,8 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 min-w-0 w-full">
-          <div className="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-7xl mx-auto w-full">
+<main className="flex-1 min-w-0 w-full">
+          <div className="px-2 sm:px-6 lg:px-8 py-3 sm:py-6 lg:py-8 max-w-7xl mx-auto w-full">
             <Outlet />
           </div>
         </main>

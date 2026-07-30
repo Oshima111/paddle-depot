@@ -19,7 +19,7 @@ stockStatus: "In Stock" | "Low Stock" | "Pre-Order" | "Out of Stock";
 
 const AVAILABLE_BRANDS = [
   "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito",
-  "Selkirk", "Bread and Butter", "Gearbox", "Sypik", "Luzz", "Friday",
+  "Selkirk", "Bread and Butter", "Wika", "Sypik", "Luzz", "Friday",
 ];
 
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -338,12 +338,12 @@ const variantRows = variants.map((v) => ({
         <div className="text-red-500 text-center py-12">{fetchError}</div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Basic Information</h3>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Product Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
             <input
               type="text"
               {...register("name", { required: "Product name is required" })}
@@ -354,7 +354,7 @@ const variantRows = variants.map((v) => ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
             <select
               {...register("brand", { required: "Brand is required" })}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
@@ -368,7 +368,7 @@ const variantRows = variants.map((v) => ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Price (₱)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price (₱)</label>
             <input
               type="number"
               {...register("price", { required: "Price is required", min: { value: 1, message: "Price must be greater than 0" } })}
@@ -379,7 +379,7 @@ const variantRows = variants.map((v) => ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               {...register("description", { required: "Description is required" })}
               rows={4}
@@ -422,14 +422,14 @@ const variantRows = variants.map((v) => ({
         </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+<div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4">
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Paddle Image</h3>
 
           <div
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+            className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors cursor-pointer ${
               dragOver
                 ? "border-emerald-500 bg-emerald-50"
                 : "border-gray-200 hover:border-gray-300 bg-gray-50"

@@ -55,17 +55,17 @@ function StatCard({
 }) {
   const content = (
     <div
-      className={`bg-white rounded-xl border border-gray-200 p-5 sm:p-6 flex items-start justify-between transition-all duration-200 h-full ${
+      className={`bg-white rounded-xl border border-gray-200 p-3 sm:p-6 flex items-start justify-between transition-all duration-200 h-full ${
         onClick
           ? "cursor-pointer hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5"
           : ""
       }`}
     >
       <div className="min-w-0">
-        <p className="text-[11px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider truncate">{title}</p>
-        <p className="text-3xl sm:text-4xl font-bold text-gray-900 mt-1.5 tabular-nums">{value}</p>
+        <p className="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider truncate">{title}</p>
+        <p className="text-xl sm:text-4xl font-bold text-gray-900 mt-1 sm:mt-1.5 tabular-nums">{value}</p>
       </div>
-      <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ml-3 ${color}`}>
+      <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ml-2 sm:ml-3 ${color}`}>
         {icon}
       </div>
     </div>
@@ -350,7 +350,7 @@ const ActionsCard = ({
   );
 
   return (
-    <div className="space-y-8 sm:space-y-10">
+<div className="space-y-6 sm:space-y-10">
       {/* Dashboard Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin</h1>
@@ -359,8 +359,8 @@ const ActionsCard = ({
         </p>
       </div>
 
-      {/* KPI / Statistics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
+{/* KPI / Statistics Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
         <StatCard
           title="Total Products"
           value={stats?.totalProducts || 0}
@@ -408,7 +408,7 @@ const ActionsCard = ({
 {/* Stock Overview */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
         <h3 className="text-base font-semibold text-gray-900 mb-5">Stock Overview</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {[
             { label: "In Stock", value: stats?.inStock || 0, color: "bg-emerald-500", icon: <CheckCircleIcon size={18} />, iconBg: "text-emerald-600" },
             { label: "Low Stock", value: stats?.lowStock || 0, color: "bg-amber-500", icon: <AlertTriangleIcon size={18} />, iconBg: "text-amber-600" },

@@ -7,7 +7,7 @@ import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import type { Product, ProductVariant } from "../data/products";
 import { products as localProducts } from "../data/products";
 
-const BRAND_ORDER = ["All", "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito", "Selkirk", "Bread and Butter", "Gearbox", "Sypik", "Luzz", "Friday"];
+const BRAND_ORDER = ["All", "RPM", "CRBN", "JOOLA", "Honolulu", "Franklin", "Kamito", "Selkirk", "Bread and Butter", "Wika", "Sypik", "Luzz", "Friday"];
 
 interface ProductGridProps {
   selectedBrand: string;
